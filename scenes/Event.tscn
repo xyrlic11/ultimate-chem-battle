@@ -1,0 +1,85 @@
+[gd_scene load_steps=4 format=3 uid="uid://bevent0001xx"]
+
+[ext_resource type="Script" path="res://scripts/event.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/adventure_backdrop.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/RegionBanner.tscn" id="3"]
+
+; Phase F: stands in for the shop screen at four fixed waves (4/8/12/16).
+; See scripts/events.gd for why this is scoped down from a full roguelike
+; branching map, and PLAYER-FEEDBACK-SPEC.md §5.1 for the design discussion.
+
+[node name="Event" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Bg" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2")
+context = 2
+
+[node name="RegionBanner" parent="." instance=ExtResource("3")]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 430.0
+offset_top = 16.0
+offset_right = -430.0
+offset_bottom = 58.0
+grow_horizontal = 2
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Box" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1000, 590)
+layout_mode = 2
+
+[node name="Layout" type="VBoxContainer" parent="Center/Box"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EventTitle" type="Label" parent="Center/Box/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "⚗ เหตุการณ์"
+
+[node name="EventDesc" type="Label" parent="Center/Box/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.78, 0.8, 0.88, 1)
+horizontal_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="CardRow" type="VBoxContainer" parent="Center/Box/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="ContinueButton" type="Button" parent="Center/Box/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+visible = false
+text = "▶ ไปต่อ"

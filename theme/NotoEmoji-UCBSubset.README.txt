@@ -1,0 +1,43 @@
+NotoEmoji-UCBSubset.ttf
+=======================
+Noto Emoji (Regular) subset to exactly the 22 emoji codepoints used by
+Ultimate Chem Battle, so a Web export can render them instead of showing tofu.
+
+Size: 12 KB.  Coverage verified: 22/22 render as real glyphs.
+
+Codepoints included:
+  U+25B6 ▶   U+2623 ☣   U+2697 ⚗   U+2699 ⚙   U+2728 ✨   U+274C ❌
+  U+1F389 🎉  U+1F3B5 🎵  U+1F3E0 🏠  U+1F3EA 🏪  U+1F47E 👾  U+1F480 💀
+  U+1F4A5 💥  U+1F4A7 💧  U+1F4B0 💰  U+1F4D6 📖  U+1F504 🔄  U+1F50A 🔊
+  U+1F5D1 🗑  U+1F9EA 🧪  U+1F9EB 🧫  U+1F9EC 🧬
+
+NOT included: U+2192 (→). That is a plain math arrow, not an emoji --
+Noto Sans Thai / the Latin subset already carries it.
+
+How to use in Godot
+-------------------
+This is a FALLBACK, not a replacement. Load Noto Sans Thai as the primary
+FontFile and add this as an entry in its `fallbacks` array:
+
+    [sub_resource type="FontFile" id="FontFile_ucb_emoji"]
+    ; res://theme/NotoEmoji-UCBSubset.ttf
+
+    [sub_resource type="FontFile" id="FontFile_ucb_thai"]
+    ; res://theme/NotoSansThai-Regular.ttf
+    fallbacks = [SubResource("FontFile_ucb_emoji")]
+
+WHY THIS FILE HAS TO EXIST: a SystemFont fallback chain resolves against fonts
+installed on the machine. A browser exposes no font list to Godot at all, so on
+a Web export the chain has nothing to fall back TO -- every emoji becomes a box
+regardless of how the chain is ordered. The only fix is to ship the glyphs.
+
+Note: Noto Emoji is MONOCHROME. Each glyph takes the Label's own font_color,
+which on this dark theme is arguably better than the OS colour emoji were --
+the money bag comes out gold wherever the gold colour is already set.
+
+Licence
+-------
+Noto Emoji is licensed under the SIL Open Font License 1.1, the same licence as
+Noto Sans Thai. Subsetting is explicitly permitted. Ship OFL.txt alongside it
+and keep the Reserved Font Name rules in mind if you rename it further.
+Source: https://github.com/googlefonts/noto-emoji

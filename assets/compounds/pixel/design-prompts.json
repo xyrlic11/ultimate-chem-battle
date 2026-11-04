@@ -1,0 +1,138 @@
+{
+  "generated_on": "2026-10-06",
+  "provider": "Built-in image_gen",
+  "shared_prompt": "Use case: stylized-concept. Asset type: one production game character sprite for a Thai chemistry fantasy auto-battler. Make a charming, polished, ORIGINAL chibi cartoon pixel-art creature. STRICT PIXEL ART: chunky clearly visible square pixel clusters, stepped outlines, 2-3 discrete shades per material, no antialiasing, no gradients, no blur, no vector shapes, no 3D rendering. Looks like an expertly hand-pixeled 48x48 RPG monster enlarged with nearest-neighbor. Dark plum 1-pixel outline, luminous pastel colors, expressive large eyes, tiny limbs, approachable smile, carefully designed distinctive silhouette and costume. Three-quarter front view facing slightly right. ONE character, full body centered occupying 75% of square image with generous transparent margins and feet aligned near 85% height. Truly transparent background. No scenery, no floor, no shadow outside character, no text, no letters, no labels, no UI, no grid, no other characters. Each sprite is a fantasy mascot inspired by chemistry, not a literal molecular model.",
+  "reference": "H2O.png (style only)",
+  "designs": [
+    {
+      "formula": "H2O",
+      "prompt": "A turquoise water-drop axolotl healer, round liquid head with three coral-pink external gills each side, tiny translucent puddle feet, pale mint scarf and a little pearl-tipped healing wand. Cheerful gentle expression, watery teardrop silhouette.",
+      "file": "H2O.png"
+    },
+    {
+      "formula": "HCl",
+      "prompt": "A tiny tangerine salamander alchemist with a curled tail, cream belly, asymmetrical purple hood, lime-green potion droplet carried in one hand. Mischievous but cute, visibly different from water mascot.",
+      "file": "HCl.png"
+    },
+    {
+      "formula": "H2S",
+      "prompt": "A lavender poison-cloud skunk spirit with fluffy cloud body, white hair tuft, curled striped tail, green vapor puff halo and tiny golden bell. Bashful sleepy eyes, soft round silhouette.",
+      "file": "H2S.png"
+    },
+    {
+      "formula": "NaOH",
+      "prompt": "A sky-blue soap-bubble rabbit cleric with long floppy ears, white foam collar, mint apron, little round cleansing shield with a sparkle motif. Friendly bouncy pose.",
+      "file": "NaOH.png"
+    },
+    {
+      "formula": "KOH",
+      "prompt": "A cobalt electric jellyfish wizard with bell-shaped head, golden zigzag crown, short pastel cyan tentacles, small electric orb staff, lively starry eyes.",
+      "file": "KOH.png"
+    },
+    {
+      "formula": "NH3",
+      "prompt": "A mint-green imp kitten with pointed ears, swirly lavender vapor tail, purple scarf covering nose like a bandit, oversized bright eyes and a tiny wind fan. Funny cheeky pose.",
+      "file": "NH3.png"
+    },
+    {
+      "formula": "CaO",
+      "prompt": "A warm cream baby kiln dragon, stocky rounded stone body, terracotta furnace belly, little orange flame horns, stubby wings, hot ember feet. Delightful eager grin.",
+      "file": "CaO.png"
+    },
+    {
+      "formula": "NaCl",
+      "prompt": "A white-and-rose salt crystal hedgehog knight, chunky cubic crystal spines, tiny pink ears, navy cape, round candy-pink shield and short boots. Round squat guardian silhouette.",
+      "file": "NaCl.png"
+    },
+    {
+      "formula": "KCl",
+      "prompt": "A lilac crystal deer healer, slender tiny legs, branching violet crystal antlers, white chest fluff, a satchel full of mint herbs, gentle amber eyes.",
+      "file": "KCl.png"
+    },
+    {
+      "formula": "CaCl2",
+      "prompt": "A pale peach crystal crab collector with large rounded crystal claws, six stubby feet, blue water pearl held in one claw, little explorer goggles on forehead. Broad low silhouette.",
+      "file": "CaCl2.png"
+    },
+    {
+      "formula": "Fe2",
+      "prompt": "A steel-gray baby bear golem knight, enormous rounded iron gauntlets, teal glowing seams, brass helmet brow, navy neck scarf, stubby heavy boots. Cute confident stance, broad square-ish body.",
+      "file": "Fe2.png"
+    },
+    {
+      "formula": "Cu2",
+      "prompt": "A warm copper raccoon swordsman, orange-brown metallic fur with turquoise patina markings, curled ringed tail, jade headband and one tiny bronze saber. Agile energetic silhouette.",
+      "file": "Cu2.png"
+    },
+    {
+      "formula": "FeS",
+      "prompt": "A dark violet armored mole miner, iron shoulder plates, golden sulfur crystal growing from helmet, orange nose, oversized digging claws and tiny lantern. Squat burrowing silhouette.",
+      "file": "FeS.png"
+    },
+    {
+      "formula": "MgO",
+      "prompt": "A pearl-white armadillo paladin, segmented creamy armor shell, violet ears, short lavender cape, silver star medallion, holding a small round white shield. Shy yet resolute.",
+      "file": "MgO.png"
+    },
+    {
+      "formula": "CuO",
+      "prompt": "A charcoal-and-turquoise baby turtle guardian with copper geometric shell, orange cheek scales, chunky patina-green shoulder guard, tiny bronze shield. Low turtle silhouette with readable expressive face.",
+      "file": "CuO.png"
+    },
+    {
+      "formula": "H2",
+      "prompt": "A pale pink winged mouse sprite, huge round ears, two tiny feathery wings, red aviator scarf, cloud-white belly, fluffy round tail and pilot goggles. Floaty light silhouette.",
+      "file": "H2.png"
+    },
+    {
+      "formula": "O2",
+      "prompt": "A powder-blue baby owl support sprite, round body, spread white feather wings, teal leafy wreath, gold chest charm and large kind eyes. Readable bird silhouette.",
+      "file": "O2.png"
+    },
+    {
+      "formula": "N2",
+      "prompt": "A lavender sleeping penguin sentinel, egg-shaped body, deep blue scarf, pale violet helmet-like head cap, little dark flippers, resting on stubby feet. Peaceful closed crescent eyes.",
+      "file": "N2.png"
+    },
+    {
+      "formula": "CH4",
+      "prompt": "A bright orange baby fox flame sprite with oversized flame-shaped ears, three fluffy ember tails, butter-yellow muzzle, little red adventurer cape and mischievous happy eyes. Cute explosive energy.",
+      "file": "CH4.png"
+    },
+    {
+      "formula": "CO2",
+      "prompt": "A soft charcoal-and-white cloud sheep firefighter, big rounded fluffy wool, curled blue ram horns, crimson fireman's neckerchief, little blue extinguisher backpack with short nozzle. Gentle determined face.",
+      "file": "CO2.png"
+    },
+    {
+      "formula": "SO2",
+      "prompt": "A pastel yellow storm-cloud duck mage, fluffy cloud wings, orange beak and feet, lavender pointy rain hat, short cyan raindrop wand, mildly grumpy adorable brows.",
+      "file": "SO2.png"
+    },
+    {
+      "formula": "H2CO3",
+      "prompt": "A coral-pink soda otter duelist, shiny bubble ears, aqua belly, a fizzy bubble cluster tail, little gold fizz crown, carrying a tiny bottle-shaped lance. Playful rounded bouncy silhouette.",
+      "file": "H2CO3.png"
+    },
+    {
+      "formula": "H2SO3",
+      "prompt": "A violet snail sorcerer with spiral rose shell shaped like a potion cauldron, orange glowing brew inside shell, mint curled antennae and tiny star charm. Cute smiling face, low asymmetric silhouette.",
+      "file": "H2SO3.png"
+    },
+    {
+      "formula": "CaOH2",
+      "prompt": "A cream-and-sky-blue baby rhino plaster guardian, large smooth chalk helmet horn, squat sturdy body, peach cheek patches, teal apron and a broad white brick shield. Warm protective smile.",
+      "file": "CaOH2.png"
+    },
+    {
+      "formula": "NH4Cl",
+      "prompt": "A mint crystal chameleon spellbreaker with enormous curled prismatic tail, lilac hood, peach forehead crystal, tiny gold crescent wand and big curious eyes. Curved lizard silhouette.",
+      "file": "NH4Cl.png"
+    },
+    {
+      "formula": "Fe2O3",
+      "prompt": "A rusty terracotta baby lion war guardian, segmented iron mane with amber highlights, deep plum chest armor, small golden crown, big steel paws, thick tail and brave happy face. Regal broad silhouette.",
+      "file": "Fe2O3.png"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ultimate Chem Battle</title>
+$GODOT_HEAD_INCLUDE
+<style>
+*{box-sizing:border-box}body{margin:0;background:#141321;color:#eee;font:16px system-ui;overflow:hidden}#game{position:fixed;inset:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}canvas{width:100%;height:100%;display:block;touch-action:none;outline:none}button{min-height:48px;padding:8px 16px;border:1px solid #bba56b;border-radius:10px;background:#292337;color:#fff;font:inherit;cursor:pointer}#tools{position:fixed;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));display:flex;gap:6px;z-index:3}#tools button{font-size:12px;opacity:.8}#loading,#rotate{position:fixed;inset:0;background:#141321;display:grid;place-content:center;text-align:center;padding:24px;z-index:5}#loading div{max-width:440px}progress{width:100%;margin:20px 0}#rotate{display:none;z-index:8}dialog{background:#211d30;color:#fff;border:1px solid #bba56b;border-radius:14px;width:min(480px,95vw);max-height:90dvh;overflow:auto}dialog::backdrop{background:#000a}textarea{display:block;width:100%;min-height:110px;margin:12px 0;padding:12px;font:inherit}small{color:#bdb8cd}@media(orientation:portrait) and (max-width:900px){#rotate{display:grid}}[hidden]{display:none!important}
+</style></head><body>
+<div id="game"><canvas id="canvas" tabindex="0">เบราว์เซอร์นี้ไม่รองรับเกม</canvas></div>
+<div id="tools"><button id="fullscreen" aria-label="เต็มจอ">เต็มจอ</button><button id="feedback">ความเห็น</button></div>
+<div id="loading"><div><h1>Ultimate Chem Battle</h1><small>Web playtest · 2026-10-06</small><p id="status">พร้อมเริ่มเดินทาง</p><progress id="progress" hidden></progress><button id="play">เล่น</button><button id="retry" hidden>ลองใหม่</button></div></div>
+<div id="rotate"><h2>หมุนมือถือเป็นแนวนอน</h2><p>เพื่อให้เห็นสนามและตัวเลือกครบ</p></div>
+<dialog id="form"><h2>ความเห็นหลังเล่น</h2><p>สนุกแค่ไหน? ตรงไหนงง กดยาก หรือน่าเบื่อ? อยากให้ปรับอะไร?</p><textarea id="answer" aria-label="ความเห็น"></textarea><p><small>คำตอบอยู่ในเครื่อง กดคัดลอกแล้วส่งให้ผู้พัฒนาได้</small></p><button id="copy">คัดลอก</button> <button id="close">ปิด</button><p id="copyStatus" aria-live="polite"></p></dialog>
+<script src="$GODOT_URL"></script><script>
+const config=$GODOT_CONFIG;
+const engine=new Engine(config);
+const el=id=>document.getElementById(id);
+el('play').onclick=async()=>{
+ el('play').hidden=true;el('progress').hidden=false;el('status').textContent='กำลังโหลดเกม…';
+ try{const missing=Engine.getMissingFeatures({threads:false});if(missing.length)throw new Error('เบราว์เซอร์ไม่รองรับ: '+missing.join(', '));await engine.startGame({canvas:el('canvas'),onProgress:(current,total)=>{if(total>0){el('progress').max=total;el('progress').value=current;}else el('progress').removeAttribute('value');}});el('loading').hidden=true;el('canvas').focus();}
+ catch(error){el('status').textContent='เปิดเกมไม่สำเร็จ: '+error.message;el('progress').hidden=true;el('retry').hidden=false;console.error(error);}
+};
+el('retry').onclick=()=>location.reload();
+el('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{el('fullscreen').textContent='ใช้แนวนอน';}};
+el('feedback').onclick=()=>el('form').showModal();el('close').onclick=()=>{el('form').close();el('canvas').focus();};
+el('copy').onclick=async()=>{const text='Ultimate Chem Battle · Web 2026-10-06\nหน้าจอ '+innerWidth+'×'+innerHeight+'\n'+el('answer').value+'\nสรุปการเล่น: '+JSON.stringify(window.ucbSummary||{});try{await navigator.clipboard.writeText(text);el('copyStatus').textContent='คัดลอกแล้ว';}catch{el('answer').value=text;el('answer').select();el('copyStatus').textContent='เลือกข้อความแล้ว กรุณาคัดลอกด้วยเมนูของเครื่อง';}};
+</script></body></html>

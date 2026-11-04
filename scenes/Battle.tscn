@@ -1,0 +1,503 @@
+[gd_scene load_steps=9 format=3 uid="uid://eq5k8n3battle01"]
+
+[ext_resource type="Script" path="res://scripts/battle.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/monster_art.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/SettingsPanel.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/arena.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/hp_vessel.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/adventure_backdrop.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/battle_status.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/battle_action_button.gd" id="8"]
+
+; LEFT versus RIGHT, facing each other.
+;
+; This was a single vertical stack for a long time: wave label, type legend,
+; trait bar, monster panel, front row, back row, action bar, log -- eight bands
+; down the screen. A player watching it described what they saw as "one grey box
+; in the top-left corner and a health bar the width of the screen", with the
+; right 60% empty and the log eating the bottom third. Nothing on it said who
+; was fighting whom.
+;
+; Stacking also spent the vertical budget on headings. Folding the wave label
+; and the type legend onto one line and dropping the separate monster panel
+; frees roughly 486px for the arena row, which is what lets both sides actually
+; be drawn at a size worth looking at.
+;
+; The fighter rows keep their ScrollContainers. Seven fighters in one row is
+; about 700px and the team column is narrower than that, so the overflow has to
+; go somewhere -- scrolling is worse than fitting but much better than clipping.
+;
+; ResultPanel stays an OVERLAY on the root rather than a child of Root, for the
+; same reason as before: in the layout budget a result banner inside the
+; VBoxContainer stole the log's last few lines exactly when the player wants to
+; read why they won. As an overlay it costs zero layout space.
+
+[node name="Battle" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Bg" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6")
+
+; Fantasy arena backdrop. Sits between the flat Bg and the UI, so it paints
+; over the base colour but under every panel and label.
+[node name="Arena" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4")
+overlay_only = true
+
+[node name="Margins" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 12
+
+[node name="Root" type="VBoxContainer" parent="Margins"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+; Wave and type triangle share one line. They were two full-width bands before,
+; which cost 56px of height to say two short things.
+
+[node name="TopLine" type="HBoxContainer" parent="Margins/Root"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="WaveLabel" type="Label" parent="Margins/Root/TopLine"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "ด่านที่ 1"
+
+; Run-wide HP (2026-09-01 feedback), not a fighter's HP -- lives here in the
+; fixed top strip because it has to survive the scene change back to the
+; shop, unlike the fighter chips below which do not.
+
+[node name="TraitBar" type="HBoxContainer" parent="Margins/Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+; Phase C (2026-09-01): who acts next, in order. Placement (front/back, then
+; left-to-right) only breaks a tie between two fighters of the same kind-speed
+; -- this is what actually answers "ใครเริ่มก่อนเริ่มหลัง" from the owner's own
+; request, since the monster is just another entry in the same queue rather
+; than always attacking last.
+
+[node name="TurnQueue" type="HBoxContainer" parent="Margins/Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
+; The arena itself. Everything above and below it is fixed height, so this row
+; takes whatever is left -- which is the point of the rewrite.
+
+[node name="Field" type="HBoxContainer" parent="Margins/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+; The team is given more width than the monster: it holds up to seven chips
+; side by side, the monster is one drawing.
+
+[node name="TeamSide" type="VBoxContainer" parent="Margins/Root/Field"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.35
+theme_override_constants/separation = 6
+
+; The row headers state the trade-off inline. A player who never reads a manual
+; still learns why they would move a compound back.
+
+[node name="FrontHeader" type="Label" parent="Margins/Root/Field/TeamSide"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.95, 0.92, 0.84, 1)
+theme_override_constants/outline_size = 4
+text = "แนวหน้า · HP +30%"
+tooltip_text = "แนวหน้าได้รับ HP เพิ่ม 30% และรับการโจมตีก่อนแนวหลัง"
+mouse_filter = 1
+
+[node name="FrontEmptyHint" type="Label" parent="Margins/Root/Field/TeamSide"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.55, 0.45, 1)
+autowrap_mode = 3
+text = "แนวหน้าโล่ง!"
+tooltip_text = "ศัตรูโจมตีแนวหลังโดยตรง ความเสียหายเพิ่มเป็น 1.5 เท่า"
+mouse_filter = 1
+
+[node name="FrontScroll" type="ScrollContainer" parent="Margins/Root/Field/TeamSide"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_vertical = 3
+vertical_scroll_mode = 1
+
+[node name="FrontRow" type="HBoxContainer" parent="Margins/Root/Field/TeamSide/FrontScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BackHeader" type="Label" parent="Margins/Root/Field/TeamSide"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.95, 0.92, 0.84, 1)
+theme_override_constants/outline_size = 4
+text = "แนวหลัง · ATK +25%"
+tooltip_text = "แนวหลังได้รับ ATK เพิ่ม 25% และมีแนวหน้าช่วยรับการโจมตี ถ้าแนวหน้าโล่งจะรับดาเมจเพิ่ม"
+mouse_filter = 1
+
+[node name="BackScroll" type="ScrollContainer" parent="Margins/Root/Field/TeamSide"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_vertical = 3
+vertical_scroll_mode = 1
+
+[node name="BackRow" type="HBoxContainer" parent="Margins/Root/Field/TeamSide/BackScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="VersusLabel" type="Label" parent="Margins/Root/Field"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.55, 0.58, 0.7, 1)
+vertical_alignment = 1
+text = "VS"
+
+; The monster gets a column of its own instead of an 84px thumbnail wedged
+; beside two lines of text. It is the antagonist; it should be the biggest thing
+; on the screen after the player's own board.
+
+[node name="MonsterSide" type="VBoxContainer" parent="Margins/Root/Field"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="MonsterName" type="Label" parent="Margins/Root/Field/MonsterSide"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+autowrap_mode = 3
+text = "มอนสเตอร์"
+
+[node name="MonsterArt" type="Control" parent="Margins/Root/Field/MonsterSide"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+
+script = ExtResource("2")
+
+[node name="MonsterStatus" type="VBoxContainer" parent="Margins/Root/Field/MonsterSide"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("7")
+
+; Wraps the vessel bar so BossSkillIcon can anchor to its top-right corner --
+; MonsterSide is a VBoxContainer, which only stacks rows, so the icon needs a
+; plain Control of its own to sit inside rather than a sibling row.
+
+[node name="MonsterHPRow" type="Control" parent="Margins/Root/Field/MonsterSide"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MonsterHP" type="Control" parent="Margins/Root/Field/MonsterSide/MonsterHPRow"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5")
+
+; Phase C boss-skill indicator (2026-09-01 feedback): tells the player what
+; damage type the boss's periodic heavy hit does and how strong, via
+; tooltip_text, without reading the log. Populated by battle.gd's
+; _spawn_monster() from Traits.boss_skill(kind); hidden for a kind with none
+; (the wave-1 training dummy).
+
+[node name="BossSkillIcon" type="Label" parent="Margins/Root/Field/MonsterSide/MonsterHPRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -26.0
+offset_top = -22.0
+offset_right = 2.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+text = "☣"
+
+[node name="MonsterHPLabel" type="Label" parent="Margins/Root/Field/MonsterSide"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+text = "HP 0/0"
+
+; The player's half of the fight. Before this the battle was a cutscene: you
+; pressed "start" and watched numbers move for thirty seconds with no decision
+; left to make. Energy accrues every tick and the three buttons spend it, so
+; there is always something to time.
+;
+; Placed directly above the log rather than as an overlay, because an overlay
+; would cover the log lines that explain WHY an ability did what it did -- and
+; in a teaching game that explanation is the point.
+
+[node name="ActionBar" type="PanelContainer" parent="Margins/Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+
+[node name="ActionRow" type="HBoxContainer" parent="Margins/Root/ActionBar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EnergyBox" type="VBoxContainer" parent="Margins/Root/ActionBar/ActionRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="EnergyLabel" type="Label" parent="Margins/Root/ActionBar/ActionRow/EnergyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+text = "พลัง 0/10"
+tooltip_text = "พลังปฏิกิริยาสะสมระหว่างต่อสู้ ใช้กดสกิลด้านข้าง ตัวเลขบนปุ่มคือค่าพลังที่ต้องใช้"
+mouse_filter = 1
+
+[node name="EnergyBar" type="ProgressBar" parent="Margins/Root/ActionBar/ActionRow/EnergyBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+max_value = 10.0
+show_percentage = false
+
+; Full effect text moved to tooltip_text (2026-09-01 feedback: less always-on
+; text, hover for detail) -- the button itself keeps just the name and the
+; number a player is already scanning the energy bar for.
+
+[node name="CatalyseButton" type="Button" parent="Margins/Root/ActionBar/ActionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "เร่งปฏิกิริยา: สร้างดาเมจใส่มอนสเตอร์ทันทีตามพลังโจมตีรวมของทีม"
+text = "🧪 เร่งปฏิกิริยา (4)"
+script = ExtResource("8")
+
+[node name="HealButton" type="Button" parent="Margins/Root/ActionBar/ActionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "สะเทิน: ฟื้นเลือดให้ทุกคนในทีม 25% ของเลือดเต็ม"
+text = "💧 สะเทิน (5)"
+script = ExtResource("8")
+
+[node name="BurstButton" type="Button" parent="Margins/Root/ActionBar/ActionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "คายความร้อน: ดาเมจก้อนใหญ่ใส่มอนสเตอร์ (พลังโจมตีรวม ×2)"
+text = "💥 คายความร้อน (8)"
+script = ExtResource("8")
+
+[node name="SpeedButton" type="Button" parent="Margins/Root/ActionBar/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+tooltip_text = "เลือกความเร็ว x1 / x2 / x4 / x8 หรือ Skip เพื่อข้ามภาพและคำนวณผลต่อสู้จริง"
+text = "▶ 1x"
+
+[node name="LogScroll" type="ScrollContainer" parent="Margins/Root"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+
+[node name="LogList" type="VBoxContainer" parent="Margins/Root/LogScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+; One-time coach (2026-09-01 feedback): the type-triangle legend used to sit
+; permanently in TopLine's top-right, which the owner found distracting on
+; every single fight. Same bubble pattern as Main.tscn's Tutorial/CoachBubble,
+; shown only until GameState.battle_tutorial_done -- see battle.gd's _ready().
+
+[node name="BattleCoach" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 22.0
+offset_right = 280.0
+offset_bottom = 66.0
+grow_horizontal = 2
+
+[node name="CoachRow" type="HBoxContainer" parent="BattleCoach"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CoachText" type="RichTextLabel" parent="BattleCoach/CoachRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "[color=#ff8c59]กรด[/color] ชนะ [color=#bfc7db]โลหะ[/color]   ->   [color=#bfc7db]โลหะ[/color] ชนะ [color=#66a6ff]เบส[/color]   ->   [color=#66a6ff]เบส[/color] ชนะ [color=#ff8c59]กรด[/color]"
+
+[node name="CoachSkip" type="Button" parent="BattleCoach/CoachRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 12
+text = "เข้าใจแล้ว"
+
+; Dims what is behind it. The banner used to appear over a fully lit screen with
+; the fight still visible through the gaps, so the eye had nowhere to land at
+; the one moment the game is telling the player something.
+
+[node name="ResultPanel" type="Control" parent="."]
+unique_name_in_owner = true
+z_index = 80
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResultDim" type="ColorRect" parent="ResultPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.04, 0.66)
+
+[node name="ResultBoxPanel" type="PanelContainer" parent="ResultPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.10
+anchor_top = 0.06
+anchor_right = 0.90
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ResultBox" type="VBoxContainer" parent="ResultPanel/ResultBoxPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="ResultLabel" type="Label" parent="ResultPanel/ResultBoxPanel/ResultBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="ResultReason" type="Label" parent="ResultPanel/ResultBoxPanel/ResultBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.72, 0.76, 0.86, 1)
+horizontal_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="ReportScroll" type="ScrollContainer" parent="ResultPanel/ResultBoxPanel/ResultBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Report" type="VBoxContainer" parent="ResultPanel/ResultBoxPanel/ResultBox/ReportScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ReportLeaders" type="Label" parent="ResultPanel/ResultBoxPanel/ResultBox/ReportScroll/Report"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
+[node name="ReportGrid" type="GridContainer" parent="ResultPanel/ResultBoxPanel/ResultBox/ReportScroll/Report"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 5
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 5
+
+[node name="ReportNote" type="Label" parent="ResultPanel/ResultBoxPanel/ResultBox/ReportScroll/Report"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+tooltip_text = "ดาเมจและฮีลนับตามผลจริง แถบแต่ละคอลัมน์ใช้ค่าสูงสุดของทีมนั้นเอง"
+
+[node name="ResultButtons" type="HBoxContainer" parent="ResultPanel/ResultBoxPanel/ResultBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="NextWaveButton" type="Button" parent="ResultPanel/ResultBoxPanel/ResultBox/ResultButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "เลือกเส้นทาง →"
+
+[node name="ShopButton" type="Button" parent="ResultPanel/ResultBoxPanel/ResultBox/ResultButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "จัดทีม / ร้านค้า"
+
+[node name="SettingsPanel" parent="." instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 1
+z_index = 100

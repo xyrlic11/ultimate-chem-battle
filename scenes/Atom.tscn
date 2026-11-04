@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3 uid="uid://cq5k8n3atom01"]
+
+[ext_resource type="Script" path="res://scripts/atom.gd" id="1"]
+
+[node name="Atom" type="Control"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 3
+anchors_preset = 0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 0
+script = ExtResource("1")
+
+; The circle is inset by ATOM_INSET (10px) inside a Control that stays 72x72,
+; leaving a margin for atom.gd to draw the Lewis valence dots around it.
+;
+; The Control is deliberately NOT enlarged to make that room: main.gd's cluster
+; detection bonds atoms whose rects overlap after `grow(-16)`, so a bigger rect
+; would quietly change how close two atoms must be to react. Shrinking the
+; circle instead leaves the bonding distance exactly as it was playtested.
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.1, 0.1, 0.15, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "H"

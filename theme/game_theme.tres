@@ -1,0 +1,291 @@
+[gd_resource type="Theme" load_steps=17 format=3]
+
+[ext_resource type="FontFile" path="res://theme/Mali-Regular.ttf" id="font_mali"]
+[ext_resource type="FontFile" path="res://theme/NotoSans-Regular.ttf" id="font_latin"]
+[ext_resource type="FontFile" path="res://theme/NotoSansThai-Regular.ttf" id="font_thai"]
+[ext_resource type="FontFile" path="res://theme/NotoEmoji-UCBSubset.ttf" id="font_emoji"]
+
+; Project-wide default theme.
+;
+; ── PART 1: FONT ──────────────────────────────────────────────────────────
+;
+; WHY THIS EXISTS: before this file, the project bundled no font at all. Thai
+; text and emoji rendered purely by accident, via Godot's automatic system-font
+; fallback picking up whatever Windows happened to have installed. That works on
+; this machine and silently breaks anywhere else.
+;
+; This pins the choice explicitly instead. font_names is tried in order; the
+; first name present on the machine wins. allow_system_fallback then covers any
+; remaining glyphs (notably emoji -> Segoe UI Emoji on Windows).
+;
+; Leelawadee UI is first because it covers BOTH Latin and Thai cleanly, so the
+; UI does not visibly switch typefaces mid-sentence in mixed strings like
+; "H2O (น้ำ)". Noto Sans Thai / Sarabun are the cross-platform open equivalents.
+;
+; STILL TO DO FOR WEB / ANDROID EXPORT: a SystemFont resolves against fonts
+; installed on the player's device, and a browser gives Godot no such list --
+; a Web export will still show tofu boxes for Thai. To fix that you must bundle
+; an actual font file. See theme/README.md for the exact steps.
+;
+; ── PART 2: STYLEBOXES ────────────────────────────────────────────────────
+;
+; WHY: this theme used to set ONLY the font, so every Button, Panel and
+; ProgressBar in the game still drew with Godot's stock grey default theme,
+; while atom.gd / molecule.gd / battle.gd each hand-built their own
+; StyleBoxFlat. Result: the Shop screen and the Battle screen did not read as
+; the same game. These styleboxes give the container chrome one shared look;
+; the per-element colours (KIND_COLOR etc.) deliberately stay in recipes.gd
+; because they carry gameplay meaning, not decoration.
+;
+; ⚠ VERTICAL PADDING IS DELIBERATELY CONSERVATIVE. `ShopPanel` in Main.tscn is
+; vertically tight -- PROGRESS.md documents a real bug where extra fixed height
+; there collapsed the recipe list to zero. Button content_margin_top/bottom is
+; kept at 5px, close to Godot's own default, so this pass does not grow buttons
+; enough to re-trigger it. If you raise these, re-check the Shop screen in a
+; real window; headless tests cannot see it. Same warning as default_font_size.
+
+; A SystemFont resolved against whatever the machine had installed, which is
+; nothing at all in a browser: browsers expose no font list, so a web build drew
+; every character as a blank box. Bundled files are the only thing that renders
+; everywhere.
+;
+; Mali is the BASE font as of 2026-09-01 (owner: "ปรับฟอนต์ไทยให้มันสวยๆสนุกๆ" --
+; a friendlier, rounder look than Noto Sans's plain default, still OFL and still
+; full Thai+Latin+digit coverage in the one file, per google/fonts' ofl/mali).
+; Everything Mali itself can draw -- which per check_glyphs.gd is everything
+; this project actually uses in Thai and Latin -- now renders in Mali; the three
+; below only ever fire for something Mali is missing:
+;
+;   NotoSans       Latin/digit/punctuation safety net if Mali lacks one
+;   NotoSansThai   Thai safety net if Mali lacks a character
+;   NotoEmoji      a 12KB subset cut to the emoji this game actually uses.
+;                  Monochrome on purpose: it inherits Label font_color, so the
+;                  coin glyph comes out gold wherever gold is already set.
+;
+; Order is base-then-fallbacks and Godot walks it in order. Run
+; tools/check_glyphs.gd after touching any user-facing string OR after
+; changing this list: it fails on any character no bundled font can draw,
+; which is the only way to find out before a player does.
+[sub_resource type="FontVariation" id="SystemFont_ucb_ui"]
+base_font = ExtResource("font_mali")
+variation_embolden = 0.65
+fallbacks = Array[Font]([ExtResource("font_latin"), ExtResource("font_thai"), ExtResource("font_emoji")])
+
+; --- Buttons -------------------------------------------------------------
+; Raised surface against the near-black background, so a button reads as
+; pressable without needing a hover to discover it.
+
+[sub_resource type="StyleBoxFlat" id="btn_normal"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.13, 0.105, 0.173, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.431, 0.318, 0.161, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="btn_hover"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.2, 0.157, 0.251, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.722, 0.541, 0.271, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="btn_pressed"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.086, 0.071, 0.114, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.949, 0.776, 0.427, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+; Disabled is the single most-used state in the shop -- every element button
+; goes disabled the moment gold runs short (main.gd `_refresh_gold`). It has to
+; read as "cannot afford", not as "broken", so it keeps its shape and just
+; drains contrast rather than disappearing.
+
+[sub_resource type="StyleBoxFlat" id="btn_disabled"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.075, 0.066, 0.086, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.22, 0.18, 0.24, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="btn_focus"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.447, 0.78, 0.831, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+; --- Surfaces ------------------------------------------------------------
+; `Panel` is the Board in Main.tscn and the StatusBar; `PanelContainer` is the
+; MonsterPanel / ResultPanel in Battle.tscn and the fighter chips built in
+; battle.gd. Slightly lighter than the scene background so the play area has a
+; visible edge instead of bleeding into the backdrop.
+
+[sub_resource type="StyleBoxFlat" id="panel_surface"]
+bg_color = Color(0.09, 0.075, 0.13, 0.99)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.431, 0.318, 0.161, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.02, 0.012, 0.03, 0.55)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="panel_container"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.11, 0.09, 0.145, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.722, 0.541, 0.271, 0.72)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.02, 0.012, 0.03, 0.6)
+shadow_size = 7
+
+; --- HP bars -------------------------------------------------------------
+; Used for both the monster bar and every fighter chip's bar. Red fill is the
+; genre convention and needs no legend; the dark trough keeps a nearly-dead
+; bar still legible as a bar.
+
+[sub_resource type="StyleBoxFlat" id="progress_bg"]
+bg_color = Color(0.043, 0.035, 0.063, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.431, 0.318, 0.161, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+; Fill radius is deliberately SMALLER than the trough's. At radius 6 a fighter
+; down to a few HP drew as a red circle rather than a thin sliver -- the rounding
+; ate the whole remaining width, so "nearly dead" and "slightly hurt" looked
+; alike. 3 keeps the soft edge while still reading as a bar at low values.
+[sub_resource type="StyleBoxFlat" id="progress_fill"]
+bg_color = Color(0.82, 0.28, 0.32, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+; --- Misc ----------------------------------------------------------------
+
+[sub_resource type="StyleBoxLine" id="separator_line"]
+color = Color(0.431, 0.318, 0.161, 0.8)
+thickness = 1
+
+[sub_resource type="StyleBoxEmpty" id="scroll_empty"]
+
+[sub_resource type="StyleBoxFlat" id="tooltip_panel"]
+content_margin_left = 8.0
+content_margin_top = 5.0
+content_margin_right = 8.0
+content_margin_bottom = 5.0
+bg_color = Color(0.075, 0.059, 0.09, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.722, 0.541, 0.271, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[resource]
+default_font = SubResource("SystemFont_ucb_ui")
+; 16 -> 18 (2026-09-01, owner: "ปรับให้ใหญ่อ่านง่าย"). Kept modest on purpose --
+; the ShopPanel recipe-list collapse this file already warns about (see the
+; comment near the Button styleboxes) was triggered by less growth than this
+; once before. Verified visually afterward, not just left to the checker.
+default_font_size = 18
+
+Button/colors/font_color = Color(0.933, 0.91, 0.949, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(0.949, 0.776, 0.427, 1)
+Button/colors/font_focus_color = Color(1, 1, 1, 1)
+Button/colors/font_disabled_color = Color(0.62, 0.58, 0.66, 1)
+Button/styles/normal = SubResource("btn_normal")
+Button/styles/hover = SubResource("btn_hover")
+Button/styles/pressed = SubResource("btn_pressed")
+Button/styles/disabled = SubResource("btn_disabled")
+Button/styles/focus = SubResource("btn_focus")
+
+Label/colors/font_color = Color(0.933, 0.91, 0.949, 1)
+Label/colors/font_outline_color = Color(0.025, 0.018, 0.04, 0.92)
+Label/constants/outline_size = 1
+Button/constants/outline_size = 2
+Button/colors/font_outline_color = Color(0.025, 0.018, 0.04, 0.92)
+TooltipLabel/font_sizes/font_size = 18
+
+Panel/styles/panel = SubResource("panel_surface")
+PanelContainer/styles/panel = SubResource("panel_container")
+
+ProgressBar/styles/background = SubResource("progress_bg")
+ProgressBar/styles/fill = SubResource("progress_fill")
+
+HSeparator/styles/separator = SubResource("separator_line")
+HSeparator/constants/separation = 8
+
+ScrollContainer/styles/panel = SubResource("scroll_empty")
+
+TooltipPanel/styles/panel = SubResource("tooltip_panel")
+TooltipLabel/colors/font_color = Color(0.953, 0.918, 0.831, 1)
