@@ -271,6 +271,15 @@ static func label_of(trait_id: String) -> String:
 static func color_of(trait_id: String) -> Color:
 	return TRAITS.get(trait_id, {}).get("color", Color.WHITE)
 
+static func name_color(formula: String) -> Color:
+	var recipe = Recipes.find_by_formula(formula)
+	if recipe == null: return Color.WHITE
+	var primary := str(recipe.get("kind", "neutral"))
+	if TRAITS.has(primary): return color_of(primary)
+	for trait_id in Recipes.traits_of_recipe(recipe):
+		if TRAITS.has(trait_id): return color_of(trait_id)
+	return Recipes.KIND_COLOR.get(primary, Color.WHITE)
+
 
 ## Human-readable description of the tier currently active (empty when off).
 static func active_text(trait_id: String, tier: int) -> String:

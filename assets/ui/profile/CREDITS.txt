@@ -1,0 +1,11 @@
+Heart artwork: Vecteezy.com
+Resource: life-point-pixel-three-pixel-hearts-the-health-bar-in-the, 29889499
+Provided by the user. Original license document retained beside the image.
+In-game attribution link: Settings footer.
+
+Crossed swords: original JPEG supplied by the user.
+The source JPEGs are preserved unchanged. AtlasTexture selects the visible icon;
+a canvas shader hides the white paper background at runtime.
+
+Skill icons: project-native 16 x 16 pixel patterns in scripts/profile_icons.gd.
+Six shared categories, nearest-neighbour scaling, transparent background.

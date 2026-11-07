@@ -172,15 +172,6 @@ func _style_button_tiers() -> void:
 
 
 func _ready() -> void:
-	var care := Button.new()
-	care.text = "รักษาทีม · %d" % preload("res://scripts/run_flow.gd").HEAL_COST
-	care.tooltip_text = "ใช้ทองฟื้น HP ลูกทีมบางส่วน บาดแผลยังติดตามไปไฟต์ถัดไป"
-	_battle_button.get_parent().get_parent().add_child(care)
-	care.pressed.connect(func():
-		if preload("res://scripts/run_flow.gd").buy_heal(GameState):
-			show_status("ทีมฟื้นตัวบางส่วนแล้ว", STATUS_OK)
-		else:
-			show_status("ทีมยังพร้อม หรือทองไม่พอ", STATUS_INFO))
 	_resume_reward.call_deferred()
 	_planning = Control.new()
 	_planning.set_script(load("res://scripts/preparation_ui.gd"))

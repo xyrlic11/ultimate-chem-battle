@@ -58,5 +58,5 @@ static func skip(state) -> bool:
 	if metrics: metrics.skipped()
 	state.journey.choice = "skip"
 	state.journey.selected = ""
-	state.journey.outcome = "คุณผ่านโอกาสนี้และกลับค่าย"
+	state.journey.outcome = "คุณข้ามเหตุการณ์และพบมอนสเตอร์ประจำด่าน"
 	return true

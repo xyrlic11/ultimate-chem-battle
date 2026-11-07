@@ -1,0 +1,820 @@
+# คำอธิบายที่ย้ายออกจากโค้ดสำหรับนำเสนอ
+คอมเมนต์ต้นฉบับจาก `main.gd` และ `game_state.gd` ย้ายมาไว้ที่นี่ โดยเลขบรรทัดอ้างถึงไฟล์ก่อนย้าย
+
+## main.gd
+- บรรทัด 4: "Shop & Bond" board (proposal section 3.1 / L5-1).
+- บรรทัด 5: Buy elements with gold -> drag onto the board -> overlap them to attempt
+- บรรทัด 6: a bond. Successful bonds are minted into GameState.roster and can be
+- บรรทัด 7: taken into the Auto-Battle board (Battle.tscn / L5-2).
+- บรรทัด 20: Guards the window between a cluster resolving and its animation ending.
+- บรรทัด 48: Drag-to-sell (2026-09 feedback): dropped in the board's bottom-right
+- บรรทัด 49: corner, ANY tile asks to be sold rather than fielded or reacted. A
+- บรรทัด 50: ConfirmationDialog rather than an instant sell -- the player asked for one
+- บรรทัด 51: explicitly, on the same principle as the full-field refusal: an accidental
+- บรรทัด 52: drop into a live corner must not cost something for real.
+- บรรทัด 67: Button hierarchy (2026-09 feedback: "ปุ่มแต่ละปุ่มมันกลมกลืนไป แยกไม่ออกว่า
+- บรรทัด 68: อันไหนคืออันไหน"). Element buttons already had their own colour per kind
+- บรรทัด 69: (see _paint_shop_button); these two accents cover everything else so the
+- บรรทัด 70: whole screen reads as three tiers, not one: warm = the one decision that
+- บรรทัด 71: ends the shop phase, cool = a shop action, unstyled/dim = housekeeping.
+- บรรทัด 76: --- shop buttons ------------------------------------------------------------
+- บรรทัด 77: A Button draws one run of text in one size, so the symbol, the Thai name and
+- บรรทัด 78: the price all came out at 16px with no hierarchy -- "H" was as loud as
+- บรรทัด 79: "ไฮโดรเจน". Nesting a VBoxContainer inside the Button lets each line have its
+- บรรทัด 80: own weight. The children are MOUSE_FILTER_IGNORE so the click still lands on
+- บรรทัด 81: the Button underneath.
+- บรรทัด 83: Rebuilds the element grid from GameState.shop_offer. The shop shows a
+- บรรทัด 84: rotating subset rather than the whole table, so this runs again on every
+- บรรทัด 85: reroll.
+- บรรทัด 96: Styling reads the theme's own stylebox as its base, so it has to happen
+- บรรทัด 97: after the button is in the tree or get_theme_stylebox() resolves to the
+- บรรทัด 98: engine default instead of game_theme.tres.
+- บรรทัด 122: English element name on the chip now, not the Thai one (2026-09-01
+- บรรทัด 123: feedback) -- it is the name the symbol actually comes from ("Ca" is
+- บรรทัด 124: short for Calcium, not for แคลเซียม), so showing it teaches the
+- บรรทัด 125: symbol-to-name link the Thai translation alone does not. Thai stays in
+- บรรทัด 126: the tooltip for players who want the translation.
+- บรรทัด 153: Paints a button with its element's own colour -- the same colour the atom
+- บรรทัด 154: will have once it lands on the board, so the shop teaches the mapping before
+- บรรทัด 155: the player ever drags anything. Thick left edge, hairline elsewhere: thirteen
+- บรรทัด 156: fully-outlined buttons turned the panel into a rainbow.
+- บรรทัด 157: 
+- บรรทัด 158: `disabled` is deliberately NOT overridden. An element you cannot afford falls
+- บรรทัด 159: back to the theme's grey, so losing the colour is itself the "too expensive"
+- บรรทัด 160: signal.
+- บรรทัด 174: Same technique as _paint_shop_button(): duplicate the theme's own stylebox
+- บรรทัด 175: per state rather than build one from scratch, so corner radius, margins and
+- บรรทัด 176: the hover/pressed look all stay consistent with the rest of the screen --
+- บรรทัด 177: only the accent changes. Kept separate from _paint_shop_button() because
+- บรรทัด 178: that one always paints a thick LEFT edge specifically to read as "one of
+- บรรทัด 179: thirteen colour-coded elements"; these buttons are not a set to tell apart
+- บรรทัด 180: from each other, they are one or two buttons that need to read as a tier.
+- บรรทัด 196: Three tiers, one pass: หลัก (battle), รอง (shop actions), เงียบ
+- บรรทัด 197: (housekeeping). A full popup/manual redesign is separate and bigger --
+- บรรทัด 198: this is just "can the player tell which button is which at a glance."
+- บรรทัด 210: ล้างกระดาน is a rarely-needed undo, not a shop action -- flat and dim so
+- บรรทัด 211: it does not compete with either tier above. Detail moved to a tooltip:
+- บรรทัด 212: "(คืนครึ่งราคา)" printed on every screen was three words of the
+- บรรทัด 213: "ตัวอักษรเยอะเหลือเกิน" complaint for information the button only needs
+- บรรทัด 214: to say once, on hover.
+- บรรทัด 247: Covers the board exactly, so the atom positions handed to it need no
+- บรรทัด 248: translation. Created in code rather than in Main.tscn because it is purely
+- บรรทัด 249: decorative and the scene file is already tight enough to be fragile.
+- บรรทัด 257: Sorted by atom count, so the book reads as a difficulty ramp: every
+- บรรทัด 258: two-element pair first, then the three-element ones, and so on. Dictionary
+- บรรทัด 259: order grouped them by kind instead, which means nothing to a player who
+- บรรทัด 260: has not discovered any of them yet.
+- บรรทัด 263: Starter hints first, whatever their atom count. They are the only three
+- บรรทัด 264: rows a new player can act on, and H+H+O sorted into the three-atom band
+- บรรทัด 265: well below the fold -- so the book opened on six identical "? + ? -> ???"
+- บรรทัด 266: rows and the one actionable line was off screen.
+- บรรทัด 283: Tier-2 reactions get their own section. Without it the seven
+- บรรทัด 284: compound-plus-compound reactions were invisible -- a player could only
+- บรรทัด 285: find them by dragging two finished compounds together on a hunch, which
+- บรรทัด 286: for a teaching game means most students never see the best content.
+- บรรทัด 305: Replay what the player already found in earlier sessions. Without this the
+- บรรทัด 306: book resets to all-"???" every launch while the roster persists, so the
+- บรรทัด 307: counter would read 0/28 next to a full team.
+- บรรทัด 347: No opening status line. Before this the first screen carried the same
+- บรรทัด 348: instruction three times, in three wordings, in three corners: the coach at
+- บรรทัด 349: the top, the status bar at the bottom, and the board in the middle. A new
+- บรรทัด 350: player has one question -- what do I touch -- and three voices answering it
+- บรรทัด 351: in different words read as three different questions. The board keeps the
+- บรรทัด 352: line, because the board is where the hand is going.
+- บรรทัด 353: Connected before anything touches the board, so the opening atoms and every
+- บรรทัด 354: later change persist without a call site to remember.
+- บรรทัด 356: Restore first. _seed_opening_board()'s guard is "nothing is on the board",
+- บรรทัด 357: so a restored board correctly stops it dealing a second opening set on top.
+- บรรทัด 363: The one exception to "no opening status line" above: this is a real,
+- บรรทัด 364: temporary state change from the event screen the player just came from,
+- บรรทัด 365: not a repeated instruction. Silent would read as the event doing nothing.
+- บรรทัด 372: Ctrl+R wipes the save and starts a fresh run. Deliberately a shortcut rather
+- บรรทัด 373: than an on-screen button: ShopPanel's vertical space is already tight (see
+- บรรทัด 374: PROGRESS.md, the recipe-list collapse bug) and one more child risks
+- บรรทัด 375: re-triggering it. Needed mainly so a shared/classroom machine can be handed
+- บรรทัด 376: to the next student clean.
+- บรรทัด 404: The book holds both tables now, and they re-lock differently: a
+- บรรทัด 405: tier-1 entry hides its elements behind "?", a tier-2 entry keeps
+- บรรทัด 406: its components visible.
+- บรรทัด 414: Applies the Phase F event multiplier (events.gd's "shop_mult" cards) on top
+- บรรทัด 415: of the base price. Recipes.cost_of() stays the single source of truth for
+- บรรทัด 416: the base numbers; this is the one place "this round" pricing gets layered
+- บรรทัด 417: on, so the shop button, the purchase charge and the afford-check below
+- บรรทัด 418: can never quote three different prices for the same element.
+- บรรทัด 441: The book and the shop popup both cover the whole screen, including the
+- บรรทัด 442: board being dragged on.
+- บรรทัด 459: Zone first, reaction second. The zone is what says which of the two things
+- บรรทัด 460: this identical gesture meant; only a drop in the mixing area is an attempt
+- บรรทัด 461: to react.
+- บรรทัด 465: The one change Godot does not announce: a tile that merely MOVED. Adds and
+- บรรทัด 466: removals reach the board's own signals; a new position reaches nothing.
+- บรรทัด 470: One path for everything on the board.
+- บรรทัด 471: 
+- บรรทัด 472: Atoms and compounds used to resolve through two separate functions that knew
+- บรรทัด 473: nothing about each other, which is why a cluster could never contain both.
+- บรรทัด 474: Whatever is touching, it comes through here.
+- บรรทัด 488: Only loose atoms can be noble. A noble gas inside a compound is not a
+- บรรทัด 489: thing this game can produce, so checking compounds here would be dead code.
+- บรรทัด 508: Molecules too. Walking only "atoms" is what made a finished compound
+- บรรทัด 509: unable to react with anything ever again: H2 could not be dragged into
+- บรรทัด 510: water, and the game gave no sign that it was even being attempted.
+- บรรทัด 527: Shows the bond forming, THEN mints it. The atoms stay on screen for the
+- บรรทัด 528: animation -- the electrons have to be seen leaving the atoms they came from,
+- บรรทัด 529: which cannot happen if the atoms are already gone.
+- บรรทัด 535: A second cluster resolving while the first is still animating would run
+- บรรทัด 536: queue_free() over atoms that are already freed.
+- บรรทัด 541: Only the members that actually react. A stray atom that merely touched the
+- บรรทัด 542: pile stays where it is -- it is excess reagent, not an ingredient, and
+- บรรทัด 543: consuming it would be both wrong chemistry and a theft the player never
+- บรรทัด 544: agreed to.
+- บรรทัด 562: Out of the group before anything is awaited, so no drag landing during
+- บรรทัด 563: the animation can pull these atoms into a cluster of its own.
+- บรรทัด 574: Leaving for the battle mid-animation frees the board out from under us.
+- บรรทัด 579: A compound eaten by a bigger reaction gives its roster copy back. Without
+- บรรทัด 580: this the roundabout route beats the direct one for free -- see
+- บรรทัด 581: GameState.consume_from_roster().
+- บรรทัด 591: Balancing an equation right pays in units. `made` is 1 for an ordinary
+- บรรทัด 592: reaction and 2 for something like 2H2 + O2, and each copy is a real tile.
+- บรรทัด 597: Burst in the compound's own kind colour, parented to the scene root rather
+- บรรทัด 598: than the board so the sparks are not clipped at the board's edge.
+- บรรทัด 605: `key` is computed before the animation, to ask whether this recipe is
+- บรรทัด 606: already in the book and so whether to run the short version.
+- บรรทัด 608: Tier-2 keys are compound pairs and print differently, so the book has to be
+- บรรทัด 609: told which kind of row it is filling in.
+- บรรทัด 616: Name what sat the reaction out, or the player is left wondering why one of
+- บรรทัด 617: the things they dragged in is still on the board.
+- บรรทัด 635: --- tier-2 reactions (compound + compound) ----------------------------------
+- บรรทัด 637: Shared by tier-1 bonding and tier-2 reactions so a molecule tile is wired the
+- บรรทัด 638: same way whichever produced it.
+- บรรทัด 643: Traits are snapshotted onto the entry at craft time rather than looked up
+- บรรทัด 644: per frame. GameState re-derives them from the recipe table on load anyway,
+- บรรทัด 645: so a later rebalance still reaches saves already on disk.
+- บรรทัด 654: Burst in the compound's own kind colour, parented to the scene root rather
+- บรรทัด 655: than the board so the sparks are not clipped at the board's edge.
+- บรรทัด 661: A new compound is born in the mixing area, where its components were, but
+- บรรทัด 662: add_to_roster() fields it in the front row. Slide it up to where the rules
+- บรรทัด 663: say it now is: the board must never show a tile in a different row from
+- บรรทัด 664: the one it will actually fight in. It doubles as the first lesson in the
+- บรรทัด 665: zones -- the player watches their first compound take up its position.
+- บรรทัด 683: Compounds resolve through _resolve_cluster() like everything else now. The
+- บรรทัด 684: old body handled exactly one case -- molecule dropped on molecule -- via its
+- บรรทัด 685: own lookup, which is half of why a molecule could never meet an atom.
+- บรรทัด 692: No _clamp_to_board() here, unlike the atom version below -- a molecule
+- บรรทัด 693: has to be free to travel all the way to FrontRow/BackRow, which are
+- บรรทัด 694: physically elsewhere on screen now. _apply_zone_drop()/_place_in_zone()
+- บรรทัด 695: clamp it once its actual target container is known.
+- บรรทัด 723: Takes the recipe key rather than the loose symbol list, so the same function
+- บรรทัด 724: serves both a fresh discovery and the replay of a saved one on load. The key
+- บรรทัด 725: is already sorted, which is exactly the order the book should print.
+- บรรทัด 731: Discovered entries take their compound's kind colour, so the book doubles
+- บรรทัด 732: as a record of which type triangle slots the player has actually filled.
+- บรรทัด 736: An undiscovered entry still shows how many elements it takes. "?" per atom
+- บรรทัด 737: is more use than a bare "???" -- it tells the player whether they are looking
+- บรรทัด 738: for a pair or a five-atom cluster, which is the whole difficulty of a recipe.
+- บรรทัด 739: The three the book opens with their INPUTS showing. A wall of "? + ? -> ???"
+- บรรทัด 740: is not a goal list, it is twenty-eight identical rows of noise, and a new
+- บรรทัด 741: player has nothing to aim at but random dragging. Showing what goes IN gives
+- บรรทัด 742: them something to attempt on the first screen.
+- บรรทัด 743: 
+- บรรทัด 744: The product stays hidden on purpose. Revealing it too would hand over the
+- บรรทัด 745: best moment the game has -- realising for yourself that this one is water --
+- บรรทัด 746: and reduce the board to copying an answer. Recipes.RECIPES keys are sorted,
+- บรรทัด 747: so these are written sorted.
+- บรรทัด 761: Undiscovered tier-2 entries name their COMPONENTS but hide the product. The
+- บรรทัด 762: components are compounds the player can already see in their own roster, so
+- บรรทัด 763: this reads as a solvable puzzle -- "I have both of those" -- rather than the
+- บรรทัด 764: blank "?" a tier-1 entry gets, where naming the elements would give the
+- บรรทัด 765: answer away outright.
+- บรรทัด 779: Where the run stands, on the screen the player spends most of their time on.
+- บรรทัด 780: 
+- บรรทัด 781: "ด่านที่ 1 จาก 20" existed only inside the battle, so from the shop there was
+- บรรทัด 782: no way to tell whether the game ends at 20 or never. Folded into the two
+- บรรทัด 783: headings that were already there rather than added as a new bar: ShopPanel is
+- บรรทัด 784: the container that once collapsed the recipe list to zero height when a
+- บรรทัด 785: fixed-height child was added to it, and a progress bar is exactly that.
+- บรรทัด 801: Clearing the board pays half of every loose atom back.
+- บรรทัด 802: 
+- บรรทัด 803: It used to destroy them for nothing, which meant a wrong purchase was gone
+- บรรทัด 804: for good and guessing cost real money every time. That is the "spend until
+- บรรทัด 805: broke" the owner objected to; half back makes experimenting affordable
+- บรรทัด 806: without making it free.
+- บรรทัด 823: Reaching the battle means the whole loop has been demonstrated, so the
+- บรรทัด 824: coach retires here rather than reappearing on the next shop visit.
+- บรรทัด 838: Priced in gold now, so it greys and ungreys with every purchase like the
+- บรรทัด 839: rest of the shop rather than only when the roster happens to change.
+- บรรทัด 852: Dim once capped: past the cap another coin banked earns nothing, and
+- บรรทัด 853: that is precisely when the player should start spending.
+- บรรทัด 857: Short label, full sentence in the tooltip (2026-09-01 feedback: less
+- บรรทัด 858: always-on text, hover for detail). "Battle" over "ไปต่อสู้" specifically --
+- บรรทัด 859: the owner asked for English on action buttons because it is shorter, Thai
+- บรรทัด 860: explanation everywhere the detail actually lives.
+- บรรทัด 874: The text-based roster list (formula, count, a 🧫 button, a 💰 sell button)
+- บรรทัด 875: is gone (2026-09-01 relayout) -- the real draggable tiles living in
+- บรรทัด 876: FrontRow/BackRow/Board now ARE that list. This just keeps the heading
+- บรรทัด 877: honest: the fielded count and the colour warning at the cap.
+- บรรทัด 889: Shows only traits the player actually owns something for. Listing all eight
+- บรรทัด 890: unconditionally filled the column with zeroes and buried the two or three
+- บรรทัด 891: that were live.
+- บรรทัด 904: "กรด 2/4" -- owned count against the NEXT breakpoint, the way an
+- บรรทัด 905: auto-battler player already expects to read it. Showing every
+- บรรทัด 906: breakpoint at once ("2/2/4") ran three numbers together and nobody
+- บรรทัด 907: could tell which was which.
+- บรรทัด 912: Keep counts on screen; explanations are available on hover.
+- บรรทัด 917: An inactive trait is dimmed rather than hidden: seeing "1/2" is what
+- บรรทัด 918: tells the player one more distinct compound would switch it on.
+- บรรทัด 923: The meter makes the next unlock visible without repeating its count in prose.
+- บรรทัด 971: Fades the whole StatusBar, not just the label inside it. Once the theme gave
+- บรรทัด 972: Panel a visible surface, fading only the text left a bordered empty bar
+- บรรทัด 973: sitting across the bottom of the screen for the ~95% of the time there is
+- บรรทัด 974: nothing to say.
+- บรรทัด 975: 
+- บรรทัด 976: Held for a full 10 seconds before it starts fading (2026-09-01 feedback) --
+- บรรทัด 977: this is the line that tells a player WHY a mix failed or what it needs, and
+- บรรทัด 978: 2.2 seconds was gone before that had been read once, let alone thought
+- บรรทัด 979: about. The fade itself stays slow (1.5s) so it reads as easing away, not
+- บรรทัด 980: disappearing on a timer.
+- บรรทัด 995: Announces the next monster in the shop. The type triangle decides a large
+- บรรทัด 996: share of a fight, and until now the player only found out which way it cut
+- บรรทัด 997: after locking in their board -- measured at 65-70% wins for a typed opening
+- บรรทัด 998: compound against 100% for an untyped one, purely on that roll.
+- บรรทัด 1022: The board expansion. It used to widen on its own every second wave, which
+- บรรทัด 1023: made the most valuable thing in the game arrive on a timer -- and left the
+- บรรทัด 1024: late game with no decision at all, because gold had nowhere to go and the
+- บรรทัด 1025: board filled itself. Buying it is the same lever TFT puts on levelling.
+- บรรทัด 1050: --- the opening lesson ------------------------------------------------------
+- บรรทัด 1051: 
+- บรรทัด 1052: A first-time player used to arrive at a shop screen holding about sixty pieces
+- บรรทัด 1053: of text and one interactive area, which was empty. The very first sentence
+- บรรทัด 1054: told them to drag an element out of the shop, and the shop does not support
+- บรรทัด 1055: dragging -- _on_shop_button_pressed() is a CLICK that spawns an atom at a
+- บรรทัด 1056: random spot. So the first instruction in the game could not be followed, and
+- บรรทัด 1057: everyone who tried would conclude the game was broken before finding the
+- บรรทัด 1058: click.
+- บรรทัด 1059: 
+- บรรทัด 1060: The fix is not a better sentence. It is handing them the board already set up,
+- บรรทัด 1061: so their first action is the core mechanic and there is nothing to read first.
+- บรรทัด 1063: The elements of water, waiting to be pushed together.
+- บรรทัด 1067: --- board zones -------------------------------------------------------------
+- บรรทัด 1068: 
+- บรรทัด 1069: 2026-09-01 relayout: fielding used to be three Y-bands inside the one board
+- บรรทัด 1070: (A3-a/A3-b). The owner asked for the board to go back to being crafting/
+- บรรทัด 1071: bench ONLY, with front/back as their own physical containers in TeamPanel --
+- บรรทัด 1072: so "which zone" is now "which container's rect the drop landed in", not a
+- บรรทัด 1073: Y-fraction. Front/back HP+30%/ATK+25% bonuses and field_limit() are entirely
+- บรรทัด 1074: unchanged; only what decides which row a drop MEANS has changed.
+- บรรทัด 1075: 
+- บรรทัด 1076: Phase A2 still has no code of its own: "drag a unit back from the field" is
+- บรรทัด 1077: just dragging a tile out of FrontRow/BackRow into the board.
+- บรรทัด 1079: Where the opening atoms are dealt. No zone to avoid landing in any more --
+- บรรทัด 1080: the board is one zone now -- so this is just "roughly centred."
+- บรรทัด 1083: Not a row in Traits: the board is where a compound is NOT fielded, and
+- บรรทัด 1084: Traits already has a name for that.
+- บรรทัด 1087: Gap between packed tiles inside FrontRow/BackRow, and between a tile and
+- บรรทัด 1088: that container's own edge.
+- บรรทัด 1092: Which physical container a global point falls in. Board is the fallback --
+- บรรทัด 1093: "nowhere in particular" reads as "still on the board," same as it always
+- บรรทัด 1094: has, rather than needing its own explicit hit-test.
+- บรรทัด 1113: Moves a tile into whatever container its zone means, and lays that
+- บรรทัด 1114: container out again. The board keeps free (x, y) positioning (clamped to
+- บรรทัด 1115: stay inside it) because crafting needs "where exactly," but a row does not
+- บรรทัด 1116: -- there is nothing left to preserve about horizontal position once a row
+- บรรทัด 1117: is its own container rather than a band on a shared surface, so
+- บรรทัด 1118: FrontRow/BackRow are packed automatically instead.
+- บรรทัด 1132: Simple left-to-right, wrap-when-full packing. Not a real Container
+- บรรทัด 1133: (HBoxContainer/HFlowContainer): those re-lay-out their children on every
+- บรรทัด 1134: sort pass, including mid-drag, which would fight molecule.gd setting
+- บรรทัด 1135: global_position directly and make a tile being pulled OUT of a row appear
+- บรรทัด 1136: to stick. A plain Panel with this called manually only repacks when
+- บรรทัด 1137: membership actually changes.
+- บรรทัด 1158: Every tile of one compound moves together, because a row belongs to the
+- บรรทัด 1159: COMPOUND and not to the tile. H2O ×3 is one roster entry with one row, one
+- บรรทัด 1160: stack, and one set of traits; three tiles in three different rows would be a
+- บรรทัด 1161: board that shows something the rules cannot represent.
+- บรรทัด 1175: Moves a tile to whatever zone its roster row already says. The board and
+- บรรทัด 1176: the roster are two views of one thing, and this is the direction that keeps
+- บรรทัด 1177: them honest when the roster changed first -- crafting, loading, anything
+- บรรทัด 1178: that is not a drag.
+- บรรทัด 1188: Where a tile was before this drag, so a refused move can put it back rather
+- บรรทัด 1189: than leaving it somewhere the rules do not allow. Always in the tile's
+- บรรทัด 1190: CURRENT parent's space -- reparenting only ever happens on a drop that is
+- บรรทัด 1191: actually accepted, never mid-drag, so reverting this never needs to cross
+- บรรทัด 1192: containers.
+- บรรทัด 1196: Applies the drop. Returns true when the tile ended up on the board, which
+- บรรทัด 1197: is the only place reactions are allowed to happen.
+- บรรทัด 1198: 
+- บรรทัด 1199: WHY REACTIONS ARE BOARD-ONLY: dropping a compound into FrontRow/BackRow
+- บรรทัด 1200: means "this one fights", and dropping it onto another compound on the
+- บรรทัด 1201: board means "react these two". Those are different intentions and the same
+- บรรทัด 1202: gesture, so the zone is what tells them apart. Without this, fielding a
+- บรรทัด 1203: compound next to another one would consume both and hand back something
+- บรรทัด 1204: the player never asked for -- and phase 2 spent a long time making bonding
+- บรรทัด 1205: respond to intent.
+- บรรทัด 1206: 
+- บรรทัด 1207: Takes the tile's GLOBAL centre, not a board-local Y: FrontRow/BackRow are
+- บรรทัด 1208: physically elsewhere in the scene now (2026-09-01), not bands within one
+- บรรทัด 1209: board, so a drop is checked against wherever it actually landed on screen.
+- บรรทัด 1215: A loose atom is not a team member and has no row to be in. Rather than
+- บรรทัด 1216: silently allowing it to sit in a fielded row -- which would make the
+- บรรทัด 1217: labels lie -- it slides back into the board and says why.
+- บรรทัด 1231: The only way this fails is a full field, so say the number rather than
+- บรรทัด 1232: just refusing: the player can buy another slot and the price is on
+- บรรทัด 1233: screen already.
+- บรรทัด 1253: --- board persistence -------------------------------------------------------
+- บรรทัด 1254: 
+- บรรทัด 1255: The board used to be scene nodes and nothing else, so walking to the battle
+- บรรทัด 1256: scene and back destroyed the tree and rebuilt it empty: every loose atom the
+- บรรทัด 1257: player had paid for was gone, and every compound tile with it. The first
+- บรรทัด 1258: outside player reported it in those words -- see PLAYTEST.md.
+- บรรทัด 1261: Builds a chip and wires it up. Three call sites used to repeat these seven
+- บรรทัด 1262: lines, and the restore path would have been a fourth; a copy that forgets one
+- บรรทัด 1263: `connect` gives an atom that cannot be dragged, which looks like a physics
+- บรรทัด 1264: bug rather than a missing line.
+- บรรทัด 1278: The node half of _spawn_molecule(), split out so a restored tile can reuse it
+- บรรทัด 1279: WITHOUT the roster half. Restoring must not call add_to_roster() again: the
+- บรรทัด 1280: roster entry survived the scene change on its own, and re-adding would double
+- บรรทัด 1281: the player's count of that compound on every single reload.
+- บรรทัด 1282: 
+- บรรทัด 1283: `centred` is how the two callers differ: a fresh compound appears centred on
+- บรรทัด 1284: the atoms that made it, a restored one goes back at the exact top-left corner
+- บรรทัด 1285: it was saved from.
+- บรรทัด 1300: Set while _restore_board() is mid-flight. Without it the board's own
+- บรรทัด 1301: child_entered_tree signal writes a partial board back to disk once per tile
+- บรรทัด 1302: as they are put back, and the last such write before an interruption is what
+- บรรทัด 1303: the player would find next launch.
+- บรรทัด 1306: Coalesces a burst of changes into one write. Bonding three atoms into a
+- บรรทัด 1307: compound is four signals in one frame; the disk only needs the end state.
+- บรรทัด 1311: The board persists ITSELF. Buying, bonding, selling, clearing, dealing the
+- บรรทัด 1312: opening atoms and Ctrl+R are all "a child was added or removed", and Godot
+- บรรทัด 1313: emits that on its own -- so there is no call for anyone to forget.
+- บรรทัด 1314: 
+- บรรทัด 1315: WHY IT IS BUILT THIS WAY: the previous version had six call sites, and the
+- บรรทัด 1316: seventh one somebody forgot would have been a fresh copy of the bug this all
+- บรรทัด 1317: exists to fix (the board coming back empty). Routing them through a signal we
+- บรรทัด 1318: emit by hand would have been the same six sites under a new name and the same
+- บรรทัด 1319: thing to remember. This is the SAVE_PATH sandbox pattern: make the mistake
+- บรรทัด 1320: impossible rather than make it something to be careful about.
+- บรรทัด 1321: 
+- บรรทัด 1322: Moving a tile without reacting is the one change that emits nothing -- Godot
+- บรรทัด 1323: says nothing when a node's position changes -- so the end of a drag still
+- บรรทัด 1324: calls _queue_persist() explicitly. Every drag in the game ends there,
+- บรรทัด 1325: including the zone moves phase A3 adds.
+- บรรทัด 1327: All three containers a tile can live in now (2026-09-01) -- fielding a
+- บรรทัด 1328: compound moves it out of _board entirely, and a board that only listened
+- บรรทัด 1329: to itself would miss that as a persisted change.
+- บรรทัด 1345: Deferred so a node inside child_exiting_tree is actually gone by the time
+- บรรทัด 1346: the board is read, and so several changes in one frame cost one write.
+- บรรทัด 1350: Rebuilds GameState's picture of the board from the scene tree, rather than
+- บรรทัด 1351: keeping an incremental mirror updated on every event. The board holds a
+- บรรทัด 1352: handful of nodes, and a mirror that drifts is worse than none: it would lose
+- บรรทัด 1353: something the player can see on screen.
+- บรรทัด 1354: 
+- บรรทัด 1355: Nodes already queue_free()d are skipped. queue_free() defers the actual
+- บรรทัด 1356: removal to the end of the frame but sets the flag immediately, so a bond that
+- บรรทัด 1357: consumed three atoms can persist in the same call without saving three ghosts.
+- บรรทัด 1363: All three containers (2026-09-01) -- a fielded compound lives in
+- บรรทัด 1364: FrontRow/BackRow now, not _board, and GameState.roster.row already
+- บรรทัด 1365: records which on its own, so x/y here only ever matters for what is
+- บรรทัด 1366: actually on the board.
+- บรรทัด 1385: Puts the saved board back. Runs before _seed_opening_board(), whose own guard
+- บรรทัด 1386: ("nothing is on the board") then correctly declines to deal a second opening
+- บรรทัด 1387: set on top of a restored one.
+- บรรทัด 1388: 
+- บรรทัด 1389: Positions are clamped here rather than in the sanitiser because only the
+- บรรทัด 1390: scene knows how big the board is: a save written at 1920x1080 and reopened at
+- บรรทัด 1391: 1280x720 would otherwise drop tiles off the right-hand edge, where they are
+- บรรทัด 1392: unreachable and look exactly like the bug this whole function exists to fix.
+- บรรทัด 1393: Idempotent, and it must stay that way: restoring ten times has to leave the
+- บรรทัด 1394: same board as restoring once. It reads GameState and adds nodes; it never
+- บรรทัด 1395: writes back. See the roster note on _make_molecule_tile().
+- บรรทัด 1406: Read into a local first. Every add_child() below fires the board's own
+- บรรทัด 1407: change signal, and persisting halfway through would overwrite the very
+- บรรทัด 1408: list still being read.
+- บรรทัด 1423: The roster is the authority on which row a compound is in, so a
+- บรรทัด 1424: restored tile is put where the roster says rather than where it was
+- บรรทัด 1425: last seen -- _settle_into_row() reparents it into FrontRow/BackRow/
+- บรรทัด 1426: the board and clamps or repacks whichever it lands in. Idempotent,
+- บรรทัด 1427: so this does not cost the restore its idempotence.
+- บรรทัด 1430: Clamping above can legitimately move a tile (a save from a wider window),
+- บรรทัด 1431: and that move is the kind nothing announces. Write the corrected positions
+- บรรทัด 1432: once, now that the whole board is back.
+- บรรทัด 1437: Places the opening atoms, free, when the board is bare and the player has
+- บรรทัด 1438: never made a compound.
+- บรรทัด 1439: 
+- บรรทัด 1440: The condition is read entirely from live state and remembers nothing. An
+- บรรทัด 1441: earlier draft gated on `tutorial_done`, which leaks: buy an atom, press Esc
+- บรรทัด 1442: to the title, press continue, and the roster is still empty and the wave is
+- บรรทัด 1443: still 1, so it would deal a fresh set on top every time. "Nothing is on the
+- บรรทัด 1444: board" cannot leak, because it is the thing being fixed.
+- บรรทัด 1448: Wait for the board to actually have a size. Called straight from _ready()
+- บรรทัด 1449: it is still zero and every atom lands in the top-left corner; one frame was
+- บรรทัด 1450: not enough either -- the containers were still settling and the row came
+- บรรทัด 1451: out pinned to the top edge. Poll instead of guessing a frame count.
+- บรรทัด 1462: Spread across the middle so none of them start underneath another: two
+- บรรทัด 1463: atoms already touching would bond on the first nudge and skip the lesson.
+- บรรทัด 1467: OPENING_ROW_Y, not the old 0.45, which now falls in the back row. The
+- บรรทัด 1468: first thing a new player sees has to be sitting in the area the game
+- บรรทัด 1469: is about to tell them to drag things together in.
+- บรรทัด 1474: The hint was refreshed before this finished, so it still read "click an
+- บรรทัด 1475: element in the shop" while three atoms sat on the board.
+- บรรทัด 1479: One line, and only when it is the thing the player needs. It is the single
+- บรรทัด 1480: voice on the opening screen; the coach and the status bar stay quiet until a
+- บรรทัด 1481: compound exists.
+- บรรทัด 1485: Never over the animation. It is the one moment the player should be
+- บรรทัด 1486: watching the board rather than reading instructions about it.
+- บรรทัด 1505: Brings a newly-discovered line into view and flashes it.
+- บรรทัด 1506: 
+- บรรทัด 1507: Discovering the first recipe used to change nothing a player could see: the
+- บรรทัด 1508: counter ticked 0/28 to 1/28 and the six visible rows stayed "? + ? -> ???",
+- บรรทัด 1509: because a three-atom recipe sorts far down a twenty-eight row list that only
+- บรรทัด 1510: shows six. The single best moment in the loop produced no visible reaction at
+- บรรทัด 1511: the place it was recorded.
+- บรรทัด 1515: One frame, so the label has its final size and position before the scroll
+- บรรทัด 1516: container is asked to find it.
+- บรรทัด 1528: Why nothing happened, worked out from what the player actually put down.
+- บรรทัด 1529: 
+- บรรทัด 1530: The old message was "ผสมไม่ถูกสูตร ลองสูตรอื่นดูนะ" for every failure, which
+- บรรทัด 1531: tells a student nothing and turns experimenting into buying elements at random
+- บรรทัด 1532: until the gold runs out. Every number needed to do better is already in
+- บรรทัด 1533: recipes.gd; it was simply never read.
+- บรรทัด 1534: 
+- บรรทัด 1535: Composed from the cluster, never a per-recipe string: there is no recipe to
+- บรรทัด 1536: look up when the mix is wrong, which is exactly when the explanation matters.
+- บรรทัด 1538: Ask what the player was probably reaching for before saying anything.
+- บรรทัด 1539: The first version answered "ไม่ทำปฏิกิริยากัน ลองเติมธาตุเดี่ยวเข้าไปดู" for
+- บรรทัด 1540: any two compounds, which for H2 + O2 -- the equation everyone tries first --
+- บรรทัด 1541: pointed away from the answer. What is missing there is another H2.
+- บรรทัด 1558: The valence reading. One atom short of a full outer shell is the single
+- บรรทัด 1559: most common near-miss, and saying so turns the failure into the lesson.
+- บรรทัด 1577: The two pieces the player just put together: the one they dragged, and the
+- บรรทัด 1578: one it landed on hardest.
+- บรรทัด 1579: 
+- บรรทัด 1580: Without this the matcher answers "what could this pile make", which is not
+- บรรทัด 1581: the question anyone is asking. Drag Na onto Cl with a stray H and O nearby
+- บรรทัด 1582: and it produced NaOH -- the reaction they were aiming at was not even a
+- บรรทัด 1583: candidate. With it the question becomes "what does the thing you just did
+- บรรทัด 1584: make", and the leftovers only ever get a vote on the rest.
+- บรรทัด 1592: Largest overlapping area, not the first hit: a tile dropped across two
+- บรรทัด 1593: others should react with the one it is mostly sitting on.
+- บรรทัด 1611: Separates "nothing here reacts" from "something here reacts, but not with the
+- บรรทัด 1612: piece you moved".
+- บรรทัด 1613: 
+- บรรทัด 1614: The intent rule is right -- dragging a stray H onto a pile is not the same
+- บรรทัด 1615: act as dragging HCl onto NaOH, and it should not produce the same result.
+- บรรทัด 1616: But when it blocks something, the failure used to fall through to the valence
+- บรรทัด 1617: explanation, which then talked about the whole pile and sent the player
+- บรรทัด 1618: somewhere else entirely. The rule was never the problem; the silence was.
+- บรรทัด 1619: 
+- บรรทัด 1620: Asks match_cluster() the same question a second time without the intent
+- บรรทัด 1621: constraint. If that finds a reaction, the constraint is what stopped it, and
+- บรรทัด 1622: the player can be told exactly which two pieces to put together instead.
+- บรรทัด 1646: --- live preview ------------------------------------------------------------
+- บรรทัด 1647: 
+- บรรทัด 1648: Four separate rules now decide what a pile turns into: the intent pair, the
+- บรรทัด 1649: whole-multiple rule, the subgroup search, and "more distinct elements wins".
+- บรรทัด 1650: All four are invisible. A player cannot be expected to learn them, and should
+- บรรทัด 1651: not have to -- if they can see what the group under their hand is about to
+- บรรทัด 1652: become, they need none of them.
+- บรรทัด 1653: 
+- บรรทัด 1654: The preview calls the SAME Recipes.match_cluster() the drop does, with the
+- บรรทัด 1655: same intent pair. Computing it a second way would produce two systems that
+- บรรทัด 1656: drift apart, and a preview that lies is worse than no preview: it teaches a
+- บรรทัด 1657: rule the game does not follow.
+- บรรทัด 1659: Tinted while a drag is live, restored when it ends.
+- บรรทัด 1675: Recomputed only when the membership actually changes, not every frame the
+- บรรทัด 1676: mouse moves a pixel.
+- บรรทัด 1715: Only the pieces that will actually react light up, so the player can see a
+- บรรทัด 1716: bystander being left out before it surprises them.
+- บรรทัด 1737: Drives the preview while a piece is in hand. Cheap: _refresh_preview() bails
+- บรรทัด 1738: immediately unless the set of touching pieces has actually changed.
+- บรรทัด 1746: Keep tiles in their persistence containers; only lift their drawing.
+- บรรทัด 1755: --- the recipe book ---------------------------------------------------------
+- บรรทัด 1770: --- the shop popup (2026-09-01 relayout) ------------------------------------
+- บรรทัด 1771: Buy/gold/reroll used to be a permanent left-hand column; the owner asked for
+- บรรทัด 1772: it to be a popup near Battle instead, TFT-flavoured, so the board and the
+- บรรทัด 1773: team panel own the screen instead. Same open/close pattern as the recipe
+- บรรทัด 1774: book above -- one popup open at a time, starting a drag closes both.
+- บรรทัด 1789: The two lines that stay in the column, so the book is a target rather than a
+- บรรทัด 1790: drawer nobody opens.
+- บรรทัด 1791: 
+- บรรทัด 1792: Twenty-eight rows of "? + ? -> ???" used to sit here all game: a wall, not a
+- บรรทัด 1793: goal list, and it took the left column with it. Hiding it entirely behind a
+- บรรทัด 1794: button would have been worse -- a new player never presses it, and the three
+- บรรทัด 1795: starter hints from 1.4 would do nothing at all. So the next two unsolved
+- บรรทัด 1796: goals stay in sight and the rest moved into the popup.
+- บรรทัด 1807: Once the starters are done, point at whatever is closest to hand rather
+- บรรทัด 1808: than the first locked row in the table, which is meaningless.
+- บรรทัด 1823: Half the shop price, rounded down, never less than one.
+- บรรทัด 1831: Read before freeing. queue_free() defers, so this happened to work, but a
+- บรรทัด 1832: property read off a node already scheduled for deletion is not something to
+- บรรทัด 1833: leave lying around.
+- บรรทัด 1844: Global, not board-local (2026-09-01): a molecule dragged in from FrontRow/
+- บรรทัด 1845: BackRow is not a child of the board at all during the drag, so its own
+- บรรทัด 1846: .position means nothing in board space any more. An atom is always a
+- บรรทัด 1847: child of the board already, so this is still correct for it too --
+- บรรทัด 1848: board.global_position is just (0, 0) added on in that case.
+- บรรทัด 1856: Intercepts a drag-end BEFORE the normal zone/cluster handling. Returns true
+- บรรทัด 1857: the moment the drop lands in the corner, whether or not the player goes on
+- บรรทัด 1858: to confirm -- either way this drag was a sell attempt, not a zone placement
+- บรรทัด 1859: or a bond attempt, and the caller must not fall through to those.
+- บรรทัด 1860: 
+- บรรทัด 1861: The dialog only pops for a drop that actually lands in the corner. That is
+- บรรทัด 1862: deliberate: the player asked for bottom-right specifically because it is a
+- บรรทัด 1863: corner nothing else in the layout claims, so landing there is unambiguous
+- บรรทัด 1864: intent in a way "anywhere near an edge" would not have been.
+- บรรทัด 1922: queue_free() alone reaches the board's own child_exiting_tree -> persists
+- บรรทัด 1923: itself (rule 12). No call needed here.
+- บรรทัด 1927: Cancelling has to put the tile back explicitly -- a tile that only MOVED
+- บรรทัด 1928: (picked up, then set back down at the same spot) announces nothing on its
+- บรรทัด 1929: own, same as any other drag (see _queue_persist() at the end of a normal
+- บรรทัด 1930: drag-end).
+
+## game_state.gd
+- บรรทัด 3: Autoload singleton. Carries gold, wave and the player's crafted-compound
+- บรรทัด 4: roster between the Shop & Bond board (Main.tscn) and the Auto-Battle board
+- บรรทัด 5: (Battle.tscn) -- see proposal section 3.1 L5-1 / L5-2.
+- บรรทัด 6: 
+- บรรทัด 7: roster is keyed by formula ("HCl", "Fe2", ...) ->
+- บรรทัด 8: {thai, kind, count, traits, row}
+- บรรทัด 9: 
+- บรรทัด 10: count  -- crafting a compound you already own increments this instead of
+- บรรทัด 11: adding a duplicate fighter. Raises that one fighter's stats.
+- บรรทัด 12: traits -- synergy tags, snapshotted at craft time (see traits.gd). Stored
+- บรรทัด 13: on the entry rather than looked up every frame, but re-derived
+- บรรทัด 14: on load so a rebalanced recipe table reaches existing saves.
+- บรรทัด 15: row    -- "front" or "back". Front braces for HP, back trades safety for
+- บรรทัด 16: damage. See Traits.ROW_*.
+- บรรทัด 17: 
+- บรรทัด 18: Progress persists to user://save.cfg. Every mutation funnels through the
+- บรรทัด 19: methods below, each of which saves -- so there is no "forgot to save" path.
+- บรรทัด 20: Writes are rare in practice (a purchase, a bond, a battle result), so
+- บรรทัด 21: writing eagerly is cheaper than tracking dirty state.
+- บรรทัด 39: Headless writes somewhere else, and that is a safety mechanism rather than a
+- บรรทัด 40: convenience.
+- บรรทัด 41: 
+- บรรทัด 42: Six files in tools/ seed GameState and then call reset_progress(). Each one
+- บรรทัด 43: had to remember to back the real save up and put it back, and two of them
+- บรรทัด 44: forgot -- sim_balance.gd destroyed a live run once, and check_crafting.gd did
+- บรรทัด 45: it again while being written, by the same author who had just documented the
+- บรรทัด 46: first incident. Knowing about the trap demonstrably does not prevent falling
+- บรรทัด 47: into it, so the tools no longer reach the file at all.
+- บรรทัด 48: 
+- บรรทัด 49: A static var rather than a const: this is a runtime call, and a const has to
+- บรรทัด 50: be known at compile time.
+- บรรทัด 51: 
+- บรรทัด 52: Detected via DisplayServer, NOT OS.has_feature("headless") -- that returns
+- บรรทัด 53: false under --headless, so the first version of this redirect silently did
+- บรรทัด 54: nothing and the tool it was meant to protect deleted the live save anyway.
+- บรรทัด 55: Found only because the fix was tested by removing the tool's own guard and
+- บรรทัด 56: watching what happened.
+- บรรทัด 61: Two conditions, because one was not enough. The headless check misses the
+- บรรทัด 62: screenshot tools, which have to run windowed -- there is nothing to capture
+- บรรทัด 63: otherwise -- and those drifted a live run to gold=104 wave=2 before anyone
+- บรรทัด 64: noticed. Every tool passes --test for the second condition.
+- บรรทัด 71: Bumped when the save layout changes. v1 had no traits/row on roster entries;
+- บรรทัด 72: it is migrated rather than discarded (see _sanitize_roster). v2 had no
+- บรรทัด 73: board_items; such a save loads with an empty board, which is exactly what
+- บรรทัด 74: the old build did anyway, so there is nothing to migrate.
+- บรรทัด 78: Raised from 100 alongside the content expansion: with 21 recipes there are
+- บรรทัด 79: far more builds worth opening with, and 100 barely afforded three compounds.
+- บรรทัด 80: The run ends here. Before this the game simply never stopped, which is the
+- บรรทัด 81: wrong shape for a game a student is meant to finish: sim_run.gd measured a
+- บรรทัด 82: synergy-aware player clearing 30 straight waves without one loss, so "play
+- บรรทัด 83: until you lose" really meant "play until you are bored".
+- บรรทัด 84: 
+- บรรทัด 85: 20 comes off that same measurement. A player who ignores synergies walls at
+- บรรทัด 86: wave 17, so finishing REQUIRES engaging with the chemistry grouping -- which
+- บรรทัด 87: is the thing this game exists to teach. A player who uses synergies gets
+- บรรทัด 88: there comfortably, and meets a boss on the way out.
+- บรรทัด 91: The board starts at three so the tutorial fits, and stops at seven so the two
+- บรรทัด 92: battle rows stay readable at 1280x720. Everything between is bought.
+- บรรทัด 100: No player health pool: losing the fielded team ends the run.
+- บรรทัด 109: What is physically lying on the Shop & Bond board, so it is still there
+- บรรทัด 110: after a battle. Entries are {type, key, tier, x, y}: type is "atom" (key is
+- บรรทัด 111: an element symbol) or "molecule" (key is a compound formula).
+- บรรทัด 112: 
+- บรรทัด 113: WHY THIS EXISTS: the board used to be scene nodes and nothing else. Changing
+- บรรทัด 114: scene to fight destroyed the tree, and coming back rebuilt an empty board --
+- บรรทัด 115: so every loose atom the player had PAID FOR silently vanished, and every
+- บรรทัด 116: compound tile with it. The first outside player reported exactly this
+- บรรทัด 117: ("พอสู้เสร็จมันหายไปจากบอร์ดเลย") and they were right; see PLAYTEST.md.
+- บรรทัด 118: 
+- บรรทัด 119: Compound tiles are recorded here AS WELL AS in `roster`, and the two are not
+- บรรทัด 120: duplicates: `roster` is the team that walks into battle, this is where the
+- บรรทัด 121: tile sits on the table. Restoring a tile must therefore NOT call
+- บรรทัด 122: add_to_roster() again -- the roster entry was never lost in the first place,
+- บรรทัด 123: and re-adding would double the player's count on every reload.
+- บรรทัด 126: Recipe keys the player has ever successfully bonded, as `Recipes.make_key()`
+- บรรทัด 127: strings. Separate from `roster` on purpose: the recipe book is a record of
+- บรรทัด 128: what you have LEARNED, and clearing the board or losing a compound should not
+- บรรทัด 129: un-teach it. Persisted, because a book that forgets every restart makes the
+- บรรทัด 130: discovery counter read 0/21 next to a team of six.
+- บรรทัด 141: Board slots bought this run. Resets with the run: carrying it over would hand
+- บรรทัด 142: a fresh start a board it did not earn.
+- บรรทัด 147: --- shop economy (TFT's other pillar) ---------------------------------------
+- บรรทัด 148: 
+- บรรทัด 149: The shop used to list all 13 elements at once, which meant gold was the only
+- บรรทัด 150: constraint and every run could build the same thing. Offering a rotating
+- บรรทัด 151: subset creates the decision the genre runs on: take what is in front of you,
+- บรรทัด 152: or pay to look again.
+- บรรทัด 157: Interest is paid per INTEREST_PER gold banked, capped so it cannot run away.
+- บรรทัด 158: The cap is what stops "never spend anything" from being the dominant line --
+- บรรทัด 159: past the cap, hoarding earns nothing extra and the gold is better spent.
+- บรรทัด 163: Element symbols currently for sale. Empty until the first roll.
+- บรรทัด 166: Phase F event effect (PLAYER-FEEDBACK-SPEC.md §5.1, ทิศ A): a temporary
+- บรรทัด 167: shop-price multiplier for "this round," set by events.gd's shop_mult cards.
+- บรรทัด 168: Deliberately NOT written by save_game() / read by load_game() -- Phase F
+- บรรทัด 169: was scoped to touch gold and shop pricing only, never the save
+- บรรทัด 170: FORMAT, so this lives in memory for the current session only and resets
+- บรรทัด 171: itself the moment a new round's shop rolls in (see roll_shop()). A player
+- บรรทัด 172: who quits mid-effect loses the discount/surcharge on reload; accepted
+- บรรทัด 173: trade-off for that scope, not an oversight.
+- บรรทัด 176: Cleared by reset_progress() on purpose. These machines are shared in a
+- บรรทัด 177: classroom, and the next student should get the coach the first one did.
+- บรรทัด 178: Runs finished by beating the wave-20 boss. Survives a completed run on
+- บรรทัด 179: purpose -- it is the only thing a finished run leaves behind, and the title
+- บรรทัด 180: screen reads it. The wipe-save button does clear it.
+- บรรทัด 185: Separate from tutorial_done on purpose: that one flips true the moment the
+- บรรทัด 186: player first presses "ไปต่อสู้" in main.gd's _on_battle_button_pressed(),
+- บรรทัด 187: which is BEFORE the battle screen's own one-time coach (the type-triangle
+- บรรทัด 188: explainer, moved off the always-visible HUD 2026-09-01) would need to
+- บรรทัด 189: check it. Two coaches, two flags -- checking tutorial_done from battle.gd
+- บรรทัด 190: would find it already true on the very first fight and never show anything.
+- บรรทัด 193: See roll_next_monster().
+- บรรทัด 196: Assigning wave anywhere (e.g. `GameState.wave += 1` in battle.gd) persists
+- บรรทัด 197: automatically via this setter.
+- บรรทัด 203: Guard so the flurry of assignments during load_game() doesn't write the
+- บรรทัด 204: file back out once per field.
+- บรรทัด 210: A brand-new profile has no save to load an offer from, so the shop would
+- บรรทัด 211: otherwise open empty. This is the very first shelf a new player ever sees,
+- บรรทัด 212: so it is the dealt one -- the starter hints in the recipe book have to be
+- บรรทัด 213: actionable on the screen they first appear on.
+- บรรทัด 218: --- mutations -------------------------------------------------------------
+- บรรทัด 235: Like spend_gold but for penalties: never fails, never goes negative, and
+- บรรทัด 236: reports how much was actually taken so the UI can show a truthful number.
+- บรรทัด 237: spend_gold() would have silently no-op'd when the player was too poor,
+- บรรทัด 238: which made losing a battle free.
+- บรรทัด 247: Like lose_gold(): never fails, never goes negative, reports how much was
+- บรรทัด 248: actually taken. A defeat close to killing the boss should sting less than
+- บรรทัด 249: one where the boss barely took a scratch -- see battle.gd's caller.
+- บรรทัด 255: NaCl can be reached both by bonding Na+Cl and by neutralising
+- บรรทัด 256: HCl+NaOH. Keep the better one -- a player who did the harder reaction
+- บรรทัด 257: should not have it downgraded by later making the easy version.
+- บรรทัด 267: Traits once granted by a catalyst (the mechanic itself was removed
+- บรรทัด 268: 2026-09-01 -- the owner found it did nothing "cool"), kept apart
+- บรรทัด 269: from the derived ones because _sanitize_roster() rebuilds `traits`
+- บรรทัด 270: from the recipe table on every load. Field kept read-only so a
+- บรรทัด 271: save from before the removal does not silently lose a trait a
+- บรรทัด 272: player already earned; nothing can populate it any more.
+- บรรทัด 274: New compounds default to the front line: a player who never opens
+- บรรทัด 275: the formation panel still fields a legal board rather than an
+- บรรทัด 276: accidental all-glass-cannon team that gets punished by
+- บรรทัด 277: EXPOSED_BACK_DMG_MULT without ever being told why.
+- บรรทัด 284: Returns false and changes nothing when the move is not allowed, so a caller
+- บรรทัด 285: driving this from a drag can put the tile back and say why.
+- บรรทัด 286: 
+- บรรทัด 287: Accepts the bench now: under the zone board (phase A3) there is no separate
+- บรรทัด 288: "field" screen to leave -- dragging a compound down into the mixing area IS
+- บรรทัด 289: benching it, and that is the move the player asked for when they said they
+- บรรทัด 290: could not get a fielded unit back onto the board.
+- บรรทัด 300: Coming off the bench costs a field slot; moving between the two fielded
+- บรรทัด 301: rows does not, and benching frees one. Without this check the zones would
+- บรรทัด 302: be a way around the field limit -- and that limit is what the player is
+- บรรทัด 303: paying gold to raise.
+- บรรทัด 323: Gold that would be paid as interest right now. Shown in the shop so saving
+- บรรทัด 324: has visible feedback -- interest the player cannot see is interest they will
+- บรรทัด 325: not plan around.
+- บรรทัด 335: A fresh ROUND resets the price multiplier an event card set (Phase F);
+- บรรทัด 336: a paid reroll of the SAME round must not, or the effect the player just
+- บรรทัด 337: picked would evaporate the moment they rerolled once. That is also why
+- บรรทัด 338: this lives here rather than a fixed duration -- "this round" already
+- บรรทัด 339: has a clean boundary and did not need a new one invented.
+- บรรทัด 342: spend_gold() already wrote the file on a paid reroll. ConfigFile.save()
+- บรรทัด 343: is synchronous I/O, and on a school machine with a slow disk a second
+- บรรทัด 344: write per click is a visible stutter.
+- บรรทัด 350: Weighted so cheap staples surface more often than transition metals. Without
+- บรรทัด 351: the weighting a run could open on Fe/Cu/Ca and the player -- who starts with
+- บรรทัด 352: 120 gold and no recipes -- would be stuck rerolling before they could do
+- บรรทัด 353: anything at all.
+- บรรทัด 354: The opening shelf is dealt, not rolled.
+- บรรทัด 355: 
+- บรรทัด 356: Two problems, one fix. The recipe book now shows three starter reactions as
+- บรรทัด 357: goals -- H+H, H+H+O, Na+Cl -- and a hint you cannot act on is a taunt: a
+- บรรทัด 358: random shelf frequently held none of those elements. Separately, a purely
+- บรรทัด 359: random opening could deal Fe, Cu and Ca together, leaving a new player with
+- บรรทัด 360: 120 gold, nothing they can afford to combine, and no idea that rerolling is
+- บรรทัด 361: even an option.
+- บรรทัด 362: 
+- บรรทัด 363: So the four elements the starter hints need are guaranteed, and the last two
+- บรรทัด 364: slots stay random. Shuffled at the end so the guaranteed ones are not always
+- บรรทัด 365: in the same positions, which would read as a fixed shop rather than a lucky
+- บรรทัด 366: one.
+- บรรทัด 432: Replaces the whole board in one call. main.gd rebuilds the list from the
+- บรรทัด 433: scene tree rather than keeping an incremental mirror in sync: the board is
+- บรรทัด 434: small, and a mirror that drifts is worse than no mirror at all -- a drifted
+- บรรทัด 435: mirror loses things the player can see on screen.
+- บรรทัด 447: Wipes the save and returns to a fresh run. Useful for classroom machines
+- บรรทัด 448: where the next student should not inherit the previous one's team.
+- บรรทัด 473: Ends a run that was WON. Deliberately not reset_progress(): that also
+- บรรทัด 474: clears `tutorial_done` and `discovered`, and a player who just beat the boss
+- บรรทัด 475: should not be walked through dragging atoms again, nor lose the encyclopedia
+- บรรทัด 476: they spent the run filling in. Those two are what a second run keeps.
+- บรรทัด 498: Ends a run that was LOST -- the team was defeated. Mirrors complete_run() rather
+- บรรทัด 499: than reset_progress(): a player who just lost the whole run should not be
+- บรรทัด 500: walked through the tutorial again or lose the recipe book they filled in,
+- บรรทัด 501: same courtesy a win already gets. Does not touch runs_won -- that counter
+- บรรทัด 502: is specifically for wins.
+- บรรทัด 523: --- persistence -----------------------------------------------------------
+- บรรทัด 572: Missing on any save written before this feature -- defaults to full
+- บรรทัด 573: health rather than 0, or every pre-existing save would load already dead.
+- บรรทัด 654: Drop symbols that no longer exist, then top up. A save written before the
+- บรรทัด 655: rotating shop existed has no offer at all, and one written against an
+- บรรทัด 656: older element table may name something that has since been removed.
+- บรรทัด 675: A save file is user-editable text on disk, so every field is re-checked
+- บรรทัด 676: against the current tables, the same as roster and discovered.
+- บรรทัด 677: 
+- บรรทัด 678: An entry naming an element or compound that no longer exists is DROPPED, not
+- บรรทัด 679: repaired: there is no honest guess at what the player meant, and a tile whose
+- บรรทัด 680: symbol is not in ELEMENTS would draw as a blank chip that cannot bond.
+- บรรทัด 681: Positions are clamped in main.gd instead, because only the scene knows how
+- บรรทัด 682: big the board actually is.
+- บรรทัด 705: Only meaningful for molecules; NaCl is reachable as both a tier-1
+- บรรทัด 706: bond and a tier-2 neutralisation, so which one this tile is cannot
+- บรรทัด 707: be recovered from the formula and has to be stored.
+- บรรทัด 713: Drops keys that are no longer recipes, so removing or renaming a recipe
+- บรรทัด 714: cannot leave the discovery counter reading 8/21 with only 7 findable.
+- บรรทัด 722: Both tables, because the recipe book lists tier-2 reactions too. When
+- บรรทัด 723: only RECIPES was checked here, every tier-2 discovery was silently
+- บรรทัด 724: dropped on load and the book forgot them.
+- บรรทัด 730: A save file is user-editable text on disk, and the recipe/trait tables change
+- บรรทัด 731: as the game grows. Drop anything that would make battle.gd compute nonsense,
+- บรรทัด 732: and fill in fields that did not exist when the file was written.
+- บรรทัด 747: Traits are always re-derived from the current recipe table rather than
+- บรรทัด 748: trusted from disk, so rebalancing traits.gd/recipes.gd immediately
+- บรรทัด 749: reaches saves already in the wild. Falls back to the stored kind if
+- บรรทัด 750: the compound itself no longer exists as a recipe.
+- บรรทัด 761: Traits once granted by a catalyst have to survive the re-derive above
+- บรรทัด 762: (the mechanic itself is gone, but an old save may still carry one).
+- บรรทัด 763: They are the one part of a compound's trait list the recipe table
+- บรรทัด 764: does not own, so they are stored apart and merged back here.
+- บรรทัด 765: Filtered against the current trait table so a removed trait cannot
+- บรรทัด 766: linger in a save.
+- บรรทัด 779: Stored rather than derived from the formula: NaCl is reachable both
+- บรรทัด 780: as a tier-1 bond and as a tier-2 neutralisation, so the formula
+- บรรทัด 781: alone cannot say which one this entry is.
+- บรรทัด 791: The kind of monster the NEXT battle will field, decided in advance so the
+- บรรทัด 792: shop can show it. Rolling it inside battle.gd meant the type triangle was a
+- บรรทัด 793: coin flip the player only learned about after committing their board.
+- บรรทัด 794: 
+- บรรทัด 795: Wave 1 is always neutral -- a training dummy. Neutral sits outside the
+- บรรทัด 796: triangle, so the first fight is decided by whether the player understood
+- บรรทัด 797: the loop, not by a 1-in-3 chance of having built the one compound that hard-
+- บรรทัด 798: counters. Measured: a typed opener won 65-70% of first fights, an untyped
+- บรรทัด 799: one 100%. Punishing someone for building the stronger-looking thing, via a
+- บรรทัด 800: rule they cannot see yet, is the worst possible first lesson.
+- บรรทัด 812: Scraps one copy of a compound and returns the gold paid, or 0 if there was
+- บรรทัด 813: nothing to scrap.
+- บรรทัด 814: 
+- บรรทัด 815: The roster could only ever grow. A player who bonded the wrong thing --
+- บรรทัด 816: easy, since the shop rotates and a mis-drag bonds whatever touched -- was
+- บรรทัด 817: stuck with it forever, and a synergy count they did not want could never be
+- บรรทัด 818: undone. Every decision in the shop was permanent, which made experimenting
+- บรรทัด 819: expensive in a game whose whole board is meant to be experimented with.
+- บรรทัด 820: Spends one copy of a compound that was just used up inside a bigger reaction.
+- บรรทัด 821: 
+- บรรทัด 822: Tier-2 deliberately did NOT do this, on the grounds that un-crafting would
+- บรรทัด 823: silently delete a synergy the player was counting on. The reasoning was right
+- บรรทัด 824: about "silently" and wrong about the consequence: without it the roundabout
+- บรรทัด 825: route is strictly better than the direct one -- H + H -> H2, then H2 + O,
+- บรรทัด 826: leaves you holding BOTH H2 and H2O for the same three atoms, so dragging
+- บรรทัด 827: three atoms together at once is never worth doing.
+- บรรทัด 828: 
+- บรรทัด 829: Decrementing is not silent. The player dragged the thing in themselves, and
+- บรรทัด 830: only the last copy actually costs them the synergy.
+- บรรทัด 861: How many compounds may be fielded at once. Grows with the wave.
+- บรรทัด 862: 
+- บรรทัด 863: THIS IS THE DECISION THE GAME WAS MISSING. With an unlimited board, every
+- บรรทัด 864: compound you owned fought, every synergy you happened to complete applied,
+- บรรทัด 865: and front/back was a sorting exercise with one right answer. A cap makes
+- บรรทัด 866: each slot cost something: a compound taken purely to finish a breakpoint is
+- บรรทัด 867: a compound not taken for its stats. That trade is the whole strategy layer
+- บรรทัด 868: of the genre this game is modelled on.
+- บรรทัด 869: 
+- บรรทัด 870: Starts at 3 so the tutorial board fits, and stops at 7 so the two battle
+- บรรทัด 871: rows stay readable at 1280x720.
+- บรรทัด 915: Bought, never granted. It used to widen on its own every second wave, which
+- บรรทัด 916: meant the single most valuable thing in the game arrived on a timer and cost
+- บรรทัด 917: nothing to decide. sim_run.gd measured the result: players reached the wave-20
+- บรรทัด 918: boss holding 1,700-2,700 unspent gold and owning 19 of 21 recipes, with the
+- บรรทัด 919: last eight waves offering no decision at all -- money was unlimited, the
+- บรรทัด 920: collection was complete, and all that remained was picking seven.
+- บรรทัด 921: 
+- บรรทัด 922: Paying for it is the same lever TFT puts on levelling, and it turns the
+- บรรทัด 923: surplus back into the central question: another body on the board, or the
+- บรรทัด 924: compounds to make the bodies you have hit harder?
+- บรรทัด 929: Climbs steeply. A flat price would just be a tax paid once per run; the climb
+- บรรทัด 930: is what makes the fourth slot a real question and the seventh an ambition.
+- บรรทัด 937: Buys one, at the current price. Returns false and spends nothing when the
+- บรรทัด 938: board is already full or the gold is not there.
+- บรรทัด 950: Formulas actually going into battle.
+- บรรทัด 960: The subset of the roster that counts for synergies. Bench sits out of both
+- บรรทัด 961: the fight and the trait counts.

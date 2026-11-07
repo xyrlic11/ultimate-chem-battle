@@ -19,6 +19,11 @@ const UnitAbilities := preload("res://scripts/unit_abilities.gd")
 const Events := preload("res://scripts/events.gd")
 const HpVessel := preload("res://scripts/hp_vessel.gd")
 const BattleStatus := preload("res://scripts/battle_status.gd")
+const ReactionPlan := preload("res://scripts/reaction_plan.gd")
+var _enemy_formula := ""
+var _reaction_id := ""
+var _reaction_used := false
+var battle_stage := 1
 
 signal skill_presented(caster_formula: String, target_formula: String, effect: String)
 
@@ -252,6 +257,7 @@ func _ready() -> void:
 
 
 func _start_wave() -> void:
+	battle_stage = GameState.wave
 	_shared = {"damage": 0.0, "heal": 0.0}
 	_manual = {"damage": 0.0, "heal": 0.0}
 	_battle_over = false
@@ -286,7 +292,45 @@ func _start_wave() -> void:
 
 	_log("เริ่มการต่อสู้ด่านที่ %d!" % GameState.wave, STATUS_INFO)
 	_announce_synergies()
+	_prepare_reaction()
 	_tick_timer.start()
+
+
+func _prepare_reaction() -> void:
+	_reaction_used = false
+	_reaction_id = ""
+	if not GameState.reaction_unlocked: return
+	var id: String = GameState.reaction_plan
+	if not ReactionPlan.matches(id, GameState.fielded_formulas(), _enemy_formula): return
+	_reaction_id = id
+	_try_reaction()
+
+
+func _try_reaction(target: Fighter = null) -> bool:
+	if _reaction_used or _reaction_id == "": return false
+	var source: String = ReactionPlan.PLANS[_reaction_id].source
+	if not _players.any(func(f): return f.formula == source and f.hp > 0.0): return false
+	if _enemy_formula != ReactionPlan.PLANS[_reaction_id].enemy: return false
+	var message := ""
+	if _reaction_id == "oxide":
+		# Same source key as HCl's skill: refreshes instead of stacking twice.
+		_set_timed_source(_monster.armor_break_sources, "HCl", 0.15, 2)
+		_refresh_chip_tooltip(_monster)
+		message = "ปฏิกิริยา HCl → Fe2O3: สลายเกราะ!"
+	elif target != null and target.status_kind == "corroded":
+		# Selective cleanse: retain unrelated poison, armor breaks and debuffs.
+		target.status_kind = ""
+		target.status_turns = 0
+		target.status_value = 0.0
+		_refresh_chip_tooltip(target)
+		message = "ปฏิกิริยา NaOH → HCl: ล้างกัดกร่อน!"
+	else:
+		return false
+	_reaction_used = true
+	_log(message, STATUS_OK)
+	if not silent:
+		Fx.float_text(self, Fx.centre_of(_monster_art), message, STATUS_OK, 20)
+	return true
 
 
 # --- setup -----------------------------------------------------------------
@@ -442,6 +486,7 @@ func _make_chip(f: Fighter) -> PanelContainer:
 	name_label.text = "%s ×%d" % [f.formula, f.count] if f.count > 1 else f.formula
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_color_override("font_color", Traits.name_color(f.formula))
 	identity.add_child(name_label)
 
 	# Roles and traits live in inspection text; during battle this vertical
@@ -503,6 +548,7 @@ func _refresh_chip_tooltip(f: Fighter) -> void:
 func _spawn_monster() -> void:
 	# Decided in GameState so the shop could show it before the player committed.
 	var enemy := GameState.encounter_enemy()
+	_enemy_formula = str(enemy.formula)
 	var kind: String = enemy.kind
 	var stats: Dictionary = Recipes.KIND_STATS.get(kind, Recipes.KIND_STATS["neutral"])
 
@@ -1064,6 +1110,7 @@ func _apply_boss_skill(target: Fighter) -> void:
 				STATUS_BAD)
 			if not silent:
 				Fx.float_text(self, _above(target.chip), "-ATK", Traits.color_of("acid"), 16)
+			_try_reaction(target)
 		"base":
 			var before: float = _monster.hp
 			_monster.hp = minf(_monster.max_hp, _monster.hp + _monster.max_hp * float(skill.self_heal))
@@ -1353,7 +1400,10 @@ func _tick_unit_effects() -> void:
 					Traits.color_of("acid"), 16)
 
 		_tick_source_dictionary(f.dot_sources)
-		_tick_source_dictionary(f.armor_break_sources)
+		# Opening armor break is already visible before round one starts.
+		# Age it from round two so it affects two volleys.
+		if not (f == _monster and _turn == 0 and _reaction_id == "oxide" and _reaction_used):
+			_tick_source_dictionary(f.armor_break_sources)
 		_tick_source_dictionary(f.attack_down_sources)
 		if f.guard_turns > 0:
 			f.guard_turns -= 1
@@ -1578,6 +1628,7 @@ func _finish(victory: bool) -> void:
 	if _battle_over:
 		return
 	_battle_over = true
+	GameState.reaction_unlocked = true
 	_close_speed_menu()
 	_speed_button.disabled = true
 	Playtest.battle_finished(victory, _players)
@@ -1655,7 +1706,7 @@ func _finish(victory: bool) -> void:
 			_shop_button.text = "กลับหน้าแรก"
 			_log("พิชิตจอมโจทย์ได้สำเร็จ จบเกมอย่างสมบูรณ์ ✨", STATUS_OK)
 		else:
-			if not preload("res://scripts/expedition.gd").advance(GameState, true):
+			if not preload("res://scripts/expedition.gd").advance(GameState):
 				Flow.recover(GameState, GameState.wave)
 				GameState.wave += 1
 				GameState.roll_next_monster()
@@ -2027,4 +2078,5 @@ func _on_battle_coach_skip() -> void:
 	Audio.play("click")
 	_battle_coach.visible = false
 	GameState.set_battle_tutorial_done()
+
 

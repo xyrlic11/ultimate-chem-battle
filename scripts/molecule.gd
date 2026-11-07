@@ -34,6 +34,7 @@ func setup(compound_formula: String, display_name: String, thai: String,
 	formula = compound_formula
 	tier = compound_tier
 	_label.text = compound_formula
+	_label.add_theme_color_override("font_color", preload("res://scripts/traits.gd").name_color(compound_formula))
 	_role_label.text = UnitAbilities.role_label(compound_formula)
 	var art := get_node_or_null("Art")
 	if art == null:

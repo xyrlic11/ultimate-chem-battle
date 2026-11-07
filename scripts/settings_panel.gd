@@ -28,6 +28,8 @@ var _reset_armed := false
 
 
 var _pauses := false
+var _ui_slider: HSlider
+var _ui_value: Label
 
 
 func _ready() -> void:
@@ -37,6 +39,38 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_music_slider.value = Audio.music_volume
 	_sfx_slider.value = Audio.sfx_volume
+	var rows := _box.get_node("Pad/Rows")
+	var row := HBoxContainer.new()
+	row.name = "UIScaleRow"
+	row.add_theme_constant_override("separation", 12)
+	rows.add_child(row)
+	rows.move_child(row, 2)
+	var credit := LinkButton.new()
+	credit.text = "Heart art: Vecteezy.com"
+	credit.uri = "https://www.vecteezy.com/"
+	credit.add_theme_font_size_override("font_size", 14)
+	rows.add_child(credit)
+	var title := Label.new()
+	title.text = "UI / HUD"
+	title.custom_minimum_size.x = 110
+	row.add_child(title)
+	_ui_slider = HSlider.new()
+	_ui_slider.name = "UIScaleSlider"
+	_ui_slider.min_value = 80
+	_ui_slider.max_value = 125
+	_ui_slider.step = 5
+	_ui_slider.value = UiAdaptive.ui_scale * 100
+	_ui_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_ui_slider.custom_minimum_size = Vector2(160, 48)
+	row.add_child(_ui_slider)
+	_ui_value = Label.new()
+	_ui_value.custom_minimum_size.x = 64
+	row.add_child(_ui_value)
+	_ui_value.text = "%d%%" % _ui_slider.value
+	_ui_slider.value_changed.connect(func(value: float): _ui_value.text = "%d%%" % value)
+	_ui_slider.drag_ended.connect(func(_changed: bool): UiAdaptive.set_ui_scale(_ui_slider.value / 100.0))
+	_ui_slider.gui_input.connect(func(event: InputEvent):
+		if event is InputEventKey and not event.pressed: UiAdaptive.set_ui_scale(_ui_slider.value / 100.0))
 	_refresh_labels()
 
 	_music_slider.value_changed.connect(_on_music_changed)
@@ -50,6 +84,9 @@ func _ready() -> void:
 ## the panel -- otherwise the battle keeps ticking while the player is adjusting
 ## the volume.
 func open(as_pause := false) -> void:
+	get_parent().move_child(self, -1)
+	_ui_slider.set_value_no_signal(UiAdaptive.ui_scale * 100)
+	_ui_value.text = "%d%%" % _ui_slider.value
 	_disarm_reset()
 	_pauses = as_pause
 	_menu_button.visible = as_pause

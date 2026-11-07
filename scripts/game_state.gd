@@ -6,6 +6,9 @@ const Traits := preload("res://scripts/traits.gd")
 const Campaign := preload("res://scripts/campaign.gd")
 const Rewards := preload("res://scripts/boss_rewards.gd")
 const Expedition := preload("res://scripts/expedition.gd")
+const ReactionPlan := preload("res://scripts/reaction_plan.gd")
+var reaction_plan := ""
+var reaction_unlocked := false
 var unit_condition: Dictionary = {}
 var recovered_steps: Array = []
 var event_flags: Dictionary = {}
@@ -21,6 +24,10 @@ static var SAVE_PATH: String = _pick_save_path()
 
 
 static func _pick_save_path() -> String:
+	# Select the isolated file before load_game can migrate a player save.
+	for arg in OS.get_cmdline_args():
+		if arg.replace("\\", "/").get_file() in ["ReactionOxideDemo.tscn", "ReactionNeutralizeDemo.tscn"]:
+			return "user://reaction_scene_demo.cfg"
 	if DisplayServer.get_name() == "headless":
 		return "user://save_headless.cfg"
 	for arg in OS.get_cmdline_user_args():
@@ -173,14 +180,16 @@ func interest_earned() -> int:
 
 
 func roll_shop(charge := false) -> bool:
-	if charge and not spend_gold(REROLL_COST):
+	if charge and gold < REROLL_COST:
 		return false
 	shop_offer = _random_offer()
-	shop_offer_changed.emit()
-	if not charge:
+	if charge:
+		# spend_gold saves immediately, so the new offers must already be set.
+		spend_gold(REROLL_COST)
+	else:
 		shop_price_mult = 1.0
-	if not charge:
 		save_game()
+	shop_offer_changed.emit()
 	return true
 
 
@@ -342,6 +351,8 @@ func save_game() -> void:
 	cfg.set_value("progress", "shop_offer", shop_offer)
 	cfg.set_value("progress", "tutorial_done", tutorial_done)
 	cfg.set_value("progress", "battle_tutorial_done", battle_tutorial_done)
+	cfg.set_value("progress", "reaction_plan", reaction_plan)
+	cfg.set_value("progress", "reaction_unlocked", reaction_unlocked)
 	cfg.set_value("progress", "next_monster", next_monster_kind)
 	cfg.set_value("progress", "run_buffs", run_buffs)
 	cfg.set_value("progress", "pending_reward", pending_reward)
@@ -374,6 +385,8 @@ func load_game() -> void:
 	gold = maxi(0, int(cfg.get_value("progress", "gold", STARTING_GOLD)))
 	var campaign_version := int(cfg.get_value("progress", "campaign_version", 1))
 	wave = Campaign.migrate_stage(int(cfg.get_value("progress", "wave", 1)), campaign_version)
+	reaction_plan = ReactionPlan.sanitize(cfg.get_value("progress", "reaction_plan", ""))
+	reaction_unlocked = bool(cfg.get_value("progress", "reaction_unlocked", wave > 1))
 	route_plan = {}
 	var saved_plan = cfg.get_value("progress", "route_plan", {})
 	if campaign_version >= Campaign.VERSION and saved_plan is Dictionary:
@@ -601,6 +614,8 @@ func is_boss_wave() -> bool:
 	return Campaign.is_boss(wave)
 
 func clear_run_rewards() -> void:
+	reaction_plan = ""
+	reaction_unlocked = false
 	unit_condition.clear()
 	recovered_steps.clear()
 	event_flags.clear()
@@ -665,6 +680,16 @@ func fielded_formulas() -> Array:
 			out.append(formula)
 	out.sort()
 	return out
+
+
+func commit_reaction(id: String) -> bool:
+	if id != "" and (not reaction_unlocked or not ReactionPlan.PLANS.has(id)):
+		return false
+	if not ReactionPlan.available(id, fielded_formulas()):
+		return false
+	reaction_plan = id
+	save_game()
+	return true
 
 
 func fielded_roster() -> Dictionary:

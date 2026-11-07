@@ -133,9 +133,13 @@ static func sanitize(raw, wave: int) -> Dictionary:
 		result.selected = "opening"
 		result.choice = "fight"
 		return result
-	if phase == "result" and str(raw.get("choice", "")) == "skip":
-		result.phase = "result"
-		result.choice = "skip"
+	var saved_choice := str(raw.get("choice", ""))
+	if selected.is_empty() and saved_choice in ["", "skip"] and (
+		phase == "result" or (phase == "combat" and bool(raw.get("fallback", false)))
+	):
+		result.phase = phase
+		result.choice = saved_choice
+		result.fallback = phase == "combat"
 		result.outcome = str(raw.get("outcome", ""))
 		return result
 	if phase in ["story", "result", "combat"] and ENCOUNTERS.has(selected) and result.offers.has(selected):
@@ -154,7 +158,7 @@ static func sanitize(raw, wave: int) -> Dictionary:
 			result.stage = str(choice(selected, result.choice).get("next_stage", ""))
 			if result.stage.is_empty():
 				result.phase = "result"
-		if phase in ["result", "combat"] and result.choice != "retreat" and choice(selected, result.choice).is_empty():
+		if phase in ["result", "combat"] and result.choice not in ["", "retreat"] and choice(selected, result.choice).is_empty():
 			return fresh(wave)
 		if phase == "combat" and not result.fallback and not choice(selected, result.choice).has("combat"):
 			return fresh(wave)
@@ -376,11 +380,8 @@ static func battle_reward(state) -> String:
 	state.journey.outcome = "\n".join(lines)
 	return state.journey.outcome
 
-static func advance(state, from_battle := false) -> bool:
-	var phase: String = state.journey.get("phase", "")
-	if phase == "result" and state.journey.get("choice", "") != "skip":
-		return false
-	if state.wave >= state.FINAL_WAVE or (phase != "result" and not (from_battle and phase == "combat")):
+static func advance(state) -> bool:
+	if state.wave >= state.FINAL_WAVE or state.journey.get("phase", "") != "combat":
 		return false
 	Flow.recover(state, state.wave)
 	state.journey_history.append({"step": state.wave, "event": state.journey.get("selected", ""),
@@ -411,7 +412,7 @@ static func retreat(state) -> bool:
 	return true
 
 static func followup(state) -> bool:
-	if state.journey.get("phase", "") != "result" or state.journey.get("choice", "") == "skip":
+	if state.journey.get("phase", "") != "result":
 		return false
 	state.journey.phase = "combat"
 	state.journey.fallback = true

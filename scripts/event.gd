@@ -64,7 +64,7 @@ func _ready() -> void:
 	_skip_button = Button.new()
 	_skip_button.name = "SkipButton"
 	_skip_button.text = "Skip →"
-	_skip_button.tooltip_text = "ข้ามช่วงนี้ · ไม่สู้ ไม่รับของ · ทีมพักฟื้นเล็กน้อย"
+	_skip_button.tooltip_text = "ข้ามเหตุการณ์ · เข้าสู้มอนสเตอร์ประจำด่าน"
 	add_child(_skip_button)
 	_skip_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	_skip_button.offset_left = -150
@@ -112,7 +112,7 @@ func _render() -> void:
 		"result":
 			_title.text = "ผลการตัดสินใจ"
 			_desc.text = GameState.journey.outcome
-			_continue_button.text = "เดินทางต่อ →"
+			_continue_button.text = "ไปจุดต่อสู้ →"
 		"combat": _render_combat()
 
 func _render_routes() -> void:
@@ -226,7 +226,7 @@ func _render_boss() -> void:
 func _render_combat() -> void:
 	var enemy := GameState.encounter_enemy()
 	_title.text = str(enemy.get("encounter", "เตรียมต่อสู้"))
-	_desc.text = "คู่ต่อสู้ · %s · %s\nทีมพร้อม %d ชนิด · เริ่มยุ่งกับเหตุการณ์แล้ว ต้องรับผลที่ตามมา" % [enemy.formula, enemy.name, GameState.fielded_formulas().size()]
+	_desc.text = "คู่ต่อสู้ · %s · %s\nทีมพร้อม %d ชนิด" % [enemy.formula, enemy.name, GameState.fielded_formulas().size()]
 	var fight := Button.new()
 	fight.text = "เข้าต่อสู้ →"
 	fight.custom_minimum_size.y = 64
@@ -262,9 +262,6 @@ func _skip() -> void:
 func _on_continue_pressed() -> void:
 	if Expedition.followup(GameState):
 		_render()
-		return
-	if Expedition.advance(GameState):
-		_navigate("res://scenes/Main.tscn")
 
 func _launch_battle() -> void:
 	_navigate("res://scenes/Battle.tscn")

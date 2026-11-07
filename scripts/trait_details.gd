@@ -16,7 +16,9 @@ func _ready() -> void:
 	add_child(center)
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(820, 580)
+	set_meta("dismiss_panel", panel)
+	var bounds := get_viewport_rect().size
+	panel.custom_minimum_size = Vector2(minf(820, bounds.x - 64), minf(580, bounds.y - 48))
 	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
@@ -43,10 +45,10 @@ func _ready() -> void:
 	box.add_child(note)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size.y = 340
+	scroll.custom_minimum_size.y = minf(340, maxf(100, bounds.y - 280))
 	box.add_child(scroll)
 	var grid := GridContainer.new()
-	grid.columns = 4
+	grid.columns = 3 if bounds.x < 1100 else 4
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 12)
@@ -84,4 +86,5 @@ func _ready() -> void:
 				label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				label.add_theme_color_override("font_color", Color("82e3b0") if owned else Color("a9a0b6"))
+				if text == recipe.formula: label.add_theme_color_override("font_color", Traits.name_color(recipe.formula))
 				content.add_child(label)

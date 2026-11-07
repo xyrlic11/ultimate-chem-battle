@@ -99,8 +99,16 @@ func _refresh() -> void:
 
 	match _step:
 		Step.BATTLE:
-			_target = _battle_button
-			_text.text = "ได้สารประกอบแล้ว! กด \"ไปต่อสู้\" เพื่อส่งทีมลงสนาม"
+			var main := owner
+			var nav = main.get_meta("mobile_nav") if main != null and main.has_meta("mobile_nav") else null
+			_target = nav.get_node("Fight") if nav != null and nav.visible else _battle_button
+			if GameState.discovered.is_empty():
+				var mix_hint := "ซื้อธาตุตามสูตร แล้วลากอะตอมมาซ้อนกันบนกระดาน"
+				if GameState.shop_offer.has("H"):
+					mix_hint = "เปิดร้านซื้อ H สองตัว แล้วลากมาซ้อนกันให้เป็น H₂"
+				_text.text = mix_hint + "\nตรวจทีม แล้วกด «เดินทาง» เพื่อไปเลือกเหตุการณ์"
+			else:
+				_text.text = "สารที่ผสมจะลงทีมอัตโนมัติถ้ามีที่ว่าง\nถ้าอยู่สำรอง ลากลงแถวหน้า/หลัง แล้วกด «เดินทาง»"
 		_:
 			_target = null
 

@@ -6,13 +6,19 @@ const Recipes := preload("res://scripts/recipes.gd")
 const Traits := preload("res://scripts/traits.gd")
 const Abilities := preload("res://scripts/unit_abilities.gd")
 const Plan := preload("res://scripts/preparation_plan.gd")
+const Icons := preload("res://scripts/profile_icons.gd")
 
 var host
 var pin_text: Label
 var shop_plan: Label
 var details: Control
 var detail_title: Label
-var detail_body: Label
+var detail_body: RichTextLabel
+var chemistry_note: Label
+var hp_value: Label
+var atk_value: Label
+var skill_name: Label
+var skill_icon: TextureRect
 var portrait: Label
 var unit_art: Control
 var drop_panel: PanelContainer
@@ -66,6 +72,11 @@ func setup(main) -> void:
 	shop_plan.max_lines_visible = 3
 	shop_plan.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	host.get_node("ShopPopup/Box/Col").move_child(shop_plan, 3)
+	var reactions := VBoxContainer.new()
+	reactions.name = "ReactionPlan"
+	reactions.set_script(preload("res://scripts/reaction_selector.gd"))
+	host.get_node("ShopPopup/Box/Col").add_child(reactions)
+	host.get_node("ShopPopup/Box/Col").move_child(reactions, 3)
 	_make_details()
 	drop_panel = PanelContainer.new()
 	add_child(drop_panel)
@@ -121,26 +132,63 @@ func _make_details() -> void:
 	panel.offset_bottom = 275
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 12)
+	col.add_theme_constant_override("separation", 8)
 	panel.add_child(col)
 	var heading := HBoxContainer.new()
 	col.add_child(heading)
 	detail_title = _label(heading, "", 22)
-	_button(heading, "Close", "ปิดรายละเอียดและกลับไปจัดทีม", close_details)
+	_button(heading, "×", "ปิดโปรไฟล์", close_details)
+	chemistry_note = _label(col, "", 14)
+	chemistry_note.set_meta("small_caption", true)
+	chemistry_note.add_theme_color_override("font_color", Color("b4b4c8"))
+	var summary := HBoxContainer.new()
+	summary.add_theme_constant_override("separation", 16)
+	col.add_child(summary)
 	unit_art = preload("res://scripts/compound_art.gd").new()
-	unit_art.custom_minimum_size = Vector2(0, 105)
-	col.add_child(unit_art)
-	portrait = _label(col, "", 40)
+	unit_art.custom_minimum_size = Vector2(96, 80)
+	summary.add_child(unit_art)
+	hp_value = _stat_card(summary, true)
+	atk_value = _stat_card(summary, false)
+	portrait = _label(col, "", 16)
 	portrait.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	portrait.custom_minimum_size.y = 70
+	var ability_row := HBoxContainer.new()
+	ability_row.add_theme_constant_override("separation", 12)
+	col.add_child(ability_row)
+	skill_icon = _icon(ability_row, 48)
+	skill_name = _label(ability_row, "", 22)
 	var scroll := ScrollContainer.new()
+	scroll.name = "ProfileBodyScroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	col.add_child(scroll)
-	detail_body = _label(scroll, "", 17)
-	_button(col, "Plan", "ปักหมุดสูตรของตัวนี้และแสดงธาตุที่ยังขาด", _plan_selected)
-	_button(col, "ขายสารนี้", "ขายผ่านหน้าต่างยืนยัน", _sell_selected)
+	detail_body = preload("res://scripts/status_glossary.gd").new()
+	scroll.add_child(detail_body)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 12)
+	col.add_child(actions)
+	_button(actions, "วางแผนผสม", "ปักหมุดสูตรของตัวนี้และแสดงธาตุที่ยังขาด", _plan_selected).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_button(actions, "ขายสารนี้", "ขายผ่านหน้าต่างยืนยัน", _sell_selected).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	details.hide()
+
+func _icon(parent: Node, pixels: int) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(pixels, pixels)
+	parent.add_child(icon)
+	return icon
+
+func _stat_card(parent: Node, health: bool) -> Label:
+	var card := HBoxContainer.new()
+	card.alignment = BoxContainer.ALIGNMENT_CENTER
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.tooltip_text = "พลังชีวิตสูงสุด" if health else "พลังโจมตี"
+	parent.add_child(card)
+	var icon := _icon(card, 48)
+	icon.texture = Icons.stat(health)
+	icon.material = Icons.paper_key()
+	return _label(card, "", 26)
 
 func _sell_selected() -> void:
 	if selected_formula != "":
@@ -179,27 +227,26 @@ func _refresh_details() -> void:
 	stats.hp *= (1.0 + rewards.bonus(GameState.run_buffs, "hp")) * (1.0 + preload("res://scripts/run_risk.gd").value(GameState, "team_hp", row))
 	stats.atk *= 1.0 + rewards.bonus(GameState.run_buffs, "atk")
 	detail_title.text = "%s · %s" % [selected_formula, recipe.thai]
-	portrait.text = "%s  ×%d" % [selected_formula, int(entry.get("count", 1))]
-	portrait.add_theme_color_override("font_color", Recipes.KIND_COLOR[recipe.kind])
+	detail_title.add_theme_color_override("font_color", Traits.name_color(selected_formula))
+	portrait.text = "×%d" % int(entry.get("count", 1))
+	portrait.visible = int(entry.get("count", 1)) > 1
+	portrait.add_theme_color_override("font_color", Traits.name_color(selected_formula))
 	unit_art.setup(selected_formula, int(entry.get("tier", 1)))
 	var skill := Abilities.skill_of(selected_formula)
+	chemistry_note.text = str(skill.get("chemistry", "")).replace(" จึงส่งพลังงานต่อไปยังพันธมิตร", " จึงนิยมใช้ทำสายไฟ")
+	hp_value.text = "%d" % roundi(stats.hp)
+	atk_value.text = "%.1f" % stats.atk
+	skill_name.text = str(skill.get("name", ""))
+	skill_icon.texture = Icons.skill(str(skill.get("effect", "")))
 	skill = skill.duplicate(true)
 	skill.cooldown = maxi(2, int(skill.get("cooldown", 2)) - int(rewards.bonus(GameState.run_buffs, "cooldown")))
 	var trait_names: Array[String] = []
 	for trait_id in entry.get("traits", []):
 		trait_names.append(Traits.label_of(trait_id))
-	detail_body.text = "%s · %s\nตำแหน่งปัจจุบัน: %s\n\nHP %d     ATK %.1f\nรวมตำแหน่ง สแตก สายพลัง และบัฟรัน\n\nสกิล: %s\n%s\nคูลดาวน์ %d ตา · ใช้ครั้งแรกใน %d ตา\n\nสายพลัง: %s\n\nเหตุผลทางเคมี: %s" % [
-		Abilities.role_label(selected_formula), Abilities.row_label(selected_formula),
-		Traits.ROW_LABEL[row], roundi(stats.hp), stats.atk,
-		skill.get("name", ""), skill.get("description", ""), int(skill.get("cooldown", 0)),
+	detail_body.set_description("%s\nคูลดาวน์ %d ตา · ครั้งแรกใน %d ตา\n\n%s" % [
+		skill.get("description", ""), int(skill.get("cooldown", 0)),
 		maxi(1, ceili(float(skill.get("cooldown", 0)) * 0.5)),
-		" · ".join(trait_names), skill.get("chemistry", "")]
-	var start_ratio := 1.0 + preload("res://scripts/run_risk.gd").value(GameState, "start_hp", row)
-	if start_ratio < 1.0 and row != "bench":
-		detail_body.text += "\n\nผลเดินทาง: เริ่มสู้ HP %d%%" % roundi(start_ratio * 100)
-	detail_body.text += "\n\nสภาพปัจจุบัน: HP %d%%" % roundi(preload("res://scripts/run_flow.gd").condition(GameState, selected_formula) * 100)
-	if row == "bench":
-		detail_body.text += "\n\nตัวสำรองยังไม่ร่วมต่อสู้หรือเพิ่มสายพลัง"
+		" · ".join(trait_names)])
 
 
 func _plan_selected() -> void:
